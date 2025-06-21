@@ -35,7 +35,6 @@ class GPT(BaseLLM):
                 model=self.model_name,
                 max_tokens=self.token_limit,
                 temperature=self.temperature,
-                system=self.system_prompt,
                 messages=[
                     {
                         "role": "user",

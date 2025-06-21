@@ -7,6 +7,11 @@ Converted from Jupyter notebook cell.
 import sys
 import os
 
+class Config:
+    def __init__(self, test_paths: bool = True, test_models: bool = True):
+        self.test_paths = test_paths
+        self.test_models = test_models
+
 def test_paths():
     """Test and display system paths and current working directory."""
     print("=== System Paths and Directory Test ===\n")
@@ -39,33 +44,39 @@ def test_paths():
 
 def test_models(model_name: str):
     from models import GPT, Gemini, DeepSeek, Claude, Hume
+    print("=== Model Test ===\n")
 
     model_options = {
-        "gpt": GPT,
-        "gemini": Gemini,
-        "deepseek": DeepSeek,
-        "claude": Claude,
-        "hume": Hume
+        "gpt": GPT(model_name),
+        "gemini": Gemini(model_name),
+        "deepseek": DeepSeek(model_name),
+        "claude": Claude(model_name),
+        "hume": Hume(model_name)
     }
 
     model = model_options[model_name]
-    
     response = model.generate_text(prompt="What is the capital of France?")
     print(f"Model: {model_name}, Response: {response}")
 
-def main():
+def main(config: Config):
     """Main function to run the path test."""
-    try:
-        test_paths()
-        print("\n🎉 Path test completed successfully!")
-    except Exception as e:
-        print(f"\n❌ Error during path test: {e}")
+    if config.test_paths:
+        try:
+            test_paths()
+            print("\n🎉 Path test completed successfully!")
+        except Exception as e:
+            print(f"\n❌ Error during path test: {e}")
 
-    try:
-        test_models("gpt")
-        print("\n🎉 Model test completed successfully!")
-    except Exception as e:
-        print(f"\n❌ Error during model test: {e}")
+    if config.test_models:
+        try:
+            test_models("gemini")
+            print("\n🎉 Model test completed successfully!")
+        except Exception as e:
+            print(f"\n❌ Error during model test: {e}")
 
 if __name__ == "__main__":
-    main() 
+    config = Config(
+        test_paths=True,
+        test_models=True
+    )
+    main(config) 
