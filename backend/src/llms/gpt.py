@@ -15,7 +15,7 @@ class GPT(BaseLLM):
         # For now, do nothing - you can implement context storage later
         pass
 
-    def generate_text(self, prompt: str, conversation_id: str = None) -> str:
+    def generate_text(self, prompt: str, conversation_id: str = "") -> str:
         """
         Generate text using the GPT model.
 
@@ -32,6 +32,6 @@ class GPT(BaseLLM):
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=1000
             )
-            return response.choices[0].message.content
+            return response.choices[0].message.content or ""
         except Exception as e:
             return f"Error: {str(e)}"
