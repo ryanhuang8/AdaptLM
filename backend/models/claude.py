@@ -1,5 +1,5 @@
-import os
-import sys
+from .llm import BaseLLM
+
 from anthropic import Anthropic
 
 class Claude(BaseLLM):
@@ -44,17 +44,3 @@ class Claude(BaseLLM):
             
         except Exception as e:
             return f"Error: {str(e)}"
-
-# Test the class when run directly
-if __name__ == "__main__":
-    # Simple test
-    try:
-        claude = Claude("claude")
-        print(f"✅ Claude initialized with model: {claude.model_name}")
-        
-        response = claude.generate_text("Hello! How are you?")
-        print(f"Response: {response}")
-        
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        print("Make sure ANTHROPIC_API_KEY is set in your environment variables.")

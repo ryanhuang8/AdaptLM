@@ -1,6 +1,6 @@
+from .llm import BaseLLM
+
 import google.generativeai as genai
-import os
-import sys
 
 class Gemini(BaseLLM):
     def __init__(self, model_name: str, temperature: float = 0.5, token_limit: int = 1000, system_prompt: str = ""):
@@ -47,18 +47,4 @@ class Gemini(BaseLLM):
             
         except Exception as e:
             return f"Error: {str(e)}"
-
-# Test the class when run directly
-if __name__ == "__main__":
-    # Simple test
-    try:
-        gemini = Gemini("gemini")
-        print(f"✅ Gemini initialized with model: {gemini.model_name}")
-        
-        response = gemini.generate_text("Hello! How are you?")
-        print(f"Response: {response}")
-        
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        print("Make sure GEMINI_API_KEY is set in your environment variables.")
 

@@ -1,5 +1,6 @@
-from openai import OpenAI
 from .llm import BaseLLM
+
+from openai import OpenAI
 from prompts import get_prompt_for_model
 
 class GPT(BaseLLM):

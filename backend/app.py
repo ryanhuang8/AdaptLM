@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from src.llms.llm_chosen import llm_response
+from backend.services.llm_chosen import llm_response
 
 # Load environment variables
 load_dotenv()
