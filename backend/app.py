@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
+from src.llms.llm_chosen import llm_response
 
 # Load environment variables
 load_dotenv()
@@ -20,18 +21,22 @@ def process_query():
     try:
         data = request.get_json()
         user_prompt = data.get('user_prompt', '')
+        uid = data.get('uid', '')
         
         if not user_prompt:
             return jsonify({"error": "No user prompt provided"}), 400
         
         # TODO: Implement RAG pipeline
         # 1. Route query to appropriate LLM
+        chosen_llm = "gpt"
         # 2. Retrieve context from vector database
+        context = f"This is a placeholder context. RAG pipeline not yet implemented. (uid: {uid})"
         # 3. Generate response using RAG
+        response = llm_response(chosen_llm, user_prompt, context)
         
         # Placeholder response
         response = {
-            "answer": "This is a placeholder response. RAG pipeline not yet implemented.",
+            "answer": response,
             "chosen_llm": "placeholder",
             "context_used": [],
             "confidence_score": 0.0,
