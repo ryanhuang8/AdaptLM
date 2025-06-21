@@ -1,4 +1,4 @@
-from llms.llm import BaseLLM
+from .llm import BaseLLM
 
 class Claude(BaseLLM):
     def __init__(self, model_name: str):

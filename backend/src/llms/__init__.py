@@ -1,6 +1,6 @@
-# from llms.gpt import GPT
-# from llms.gemini import Gemini
-# from llms.deepseek import DeepSeek
-# from llms.claude import Claude
-# from llms.hume import Hume
+from .gpt import GPT
+from .gemini import Gemini
+from .deepseek import DeepSeek
+from .claude import Claude
+from .hume import Hume
 

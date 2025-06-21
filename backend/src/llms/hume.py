@@ -1,4 +1,4 @@
-from llms.llm import BaseLLM
+from .llm import BaseLLM
 
 class Hume(BaseLLM):
     def __init__(self, model_name: str):
