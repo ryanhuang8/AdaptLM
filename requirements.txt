@@ -1,5 +1,6 @@
 annotated-types==0.7.0
 anyio==4.9.0
+anthropic>=0.18.0
 asttokens==3.0.0
 certifi==2025.6.15
 colorama==0.4.6
@@ -33,7 +34,7 @@ pydantic==2.11.7
 pydantic_core==2.33.2
 Pygments==2.19.2
 python-dateutil==2.9.0.post0
-python-dotenv==1.1.0
+python-dotenv==1.0.0
 pywin32==310
 pyzmq==27.0.0
 six==1.17.0
@@ -45,3 +46,4 @@ traitlets==5.14.3
 typing-inspection==0.4.1
 typing_extensions==4.14.0
 wcwidth==0.2.13
+google-generativeai>=0.3.0

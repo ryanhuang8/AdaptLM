@@ -3,7 +3,14 @@
 Simple example of using the ContextLLM system.
 """
 
-from src.llms.gpt import GPT
+import os
+import sys
+
+# Add src to the path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+
+from llms.gpt import GPT
+from prompts.default import CODING_PROMPT, CREATIVE_PROMPT
 
 def main():
     print("=== ContextLLM Example ===\n")

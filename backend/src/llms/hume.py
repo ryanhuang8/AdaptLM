@@ -1,6 +1,6 @@
-from llms.llm import BaseLLM
+from .llm import BaseLLM
 
-class Gemini(BaseLLM):
+class Hume(BaseLLM):
     def __init__(self, model_name: str):
         super().__init__(model_name)
 
@@ -9,7 +9,6 @@ class Gemini(BaseLLM):
 
     def ingest_context(self, context_id: str, context: str) -> None:
         pass
-    
+
     def generate_text(self, prompt: str) -> str:
         pass
-
