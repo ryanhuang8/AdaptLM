@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import './App.css'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Sidebar from './components/Sidebar'
 import ChatArea from './components/ChatArea'
 import InputArea from './components/InputArea'
+import Login from './components/Login'
 
-function App() {
+function AppContent() {
   const [chatSessions, setChatSessions] = useState([
     {
       id: '1',
@@ -14,6 +16,7 @@ function App() {
   ])
   const [currentChatId, setCurrentChatId] = useState('1')
   const [isLoading, setIsLoading] = useState(false)
+  const { currentUser, logout } = useAuth()
 
   const currentChat = chatSessions.find(chat => chat.id === currentChatId)
 
@@ -83,6 +86,10 @@ function App() {
     }, 1000)
   }
 
+  if (!currentUser) {
+    return <Login />
+  }
+
   return (
     <div className="app">
       <Sidebar 
@@ -90,12 +97,22 @@ function App() {
         currentChatId={currentChatId}
         onNewChat={createNewChat}
         onSwitchChat={switchChat}
+        onLogout={logout}
+        user={currentUser}
       />
       <div className="main-content">
         <ChatArea messages={currentChat?.messages || []} isLoading={isLoading} />
         <InputArea onSendMessage={handleSendMessage} isLoading={isLoading} />
       </div>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
 

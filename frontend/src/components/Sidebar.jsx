@@ -1,6 +1,6 @@
-import { Plus, MessageSquare, Settings, User, Trash2 } from 'lucide-react'
+import { Plus, MessageSquare, Settings, User, Trash2, LogOut } from 'lucide-react'
 
-const Sidebar = ({ chatSessions, currentChatId, onNewChat, onSwitchChat }) => {
+const Sidebar = ({ chatSessions, currentChatId, onNewChat, onSwitchChat, onLogout, user }) => {
   const handleDeleteChat = (e, chatId) => {
     e.stopPropagation()
     // You can add delete functionality here
@@ -41,9 +41,22 @@ const Sidebar = ({ chatSessions, currentChatId, onNewChat, onSwitchChat }) => {
       </div>
       
       <div className="sidebar-footer">
-        <button className="sidebar-btn">
-          <User size={16} />
-          <span>Account</span>
+        <div className="user-info">
+          <div className="user-avatar">
+            {user?.photoURL ? (
+              <img src={user.photoURL} alt="User avatar" />
+            ) : (
+              <User size={16} />
+            )}
+          </div>
+          <div className="user-details">
+            <span className="user-name">{user?.displayName || user?.email}</span>
+            <span className="user-email">{user?.email}</span>
+          </div>
+        </div>
+        <button className="sidebar-btn" onClick={onLogout}>
+          <LogOut size={16} />
+          <span>Logout</span>
         </button>
         <button className="sidebar-btn">
           <Settings size={16} />
