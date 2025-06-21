@@ -1,15 +1,75 @@
-from llms.llm import BaseLLM
+import google.generativeai as genai
+import os
+import sys
+
+# Add the src directory to the path so we can import from parent modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    from llms.llm import BaseLLM
+    from prompts import get_prompt_for_model
+except ImportError:
+    # Fallback for when running the file directly
+    from llm import BaseLLM
+    from prompts.default import SYSTEM_PROMPT
 
 class Gemini(BaseLLM):
-    def __init__(self, model_name: str):
-        super().__init__(model_name)
+    def __init__(self, model_name: str, temperature: float = 0.5, token_limit: int = 1000, system_prompt: str = ""):
+        super().__init__(model_name, temperature, token_limit, system_prompt)
+        
+        # Configure the API
+        genai.configure(api_key=self.api_key)
+        
+        # Get the model
+        self.model = genai.GenerativeModel(self.model_name)
 
     def extract_context(self, prompt: str) -> str:
-        pass
+        # For now, return empty string - you can implement vector search later
+        return ""
 
     def ingest_context(self, context_id: str, context: str) -> None:
-        pass
+        # For now, do nothing - you can implement context storage later
+        return ""
     
     def generate_text(self, prompt: str) -> str:
-        pass
+        """
+        Generate text using the Gemini model.
+        
+        Args:
+            prompt: The user's input prompt.
+
+        Returns:
+            The generated text response.
+        """
+        try:
+            # Create generation config
+            generation_config = genai.types.GenerationConfig(
+                temperature=self.temperature,
+                max_output_tokens=self.token_limit,
+            )
+            
+            # Generate content
+            response = self.model.generate_content(
+                prompt,
+                generation_config=generation_config
+            )
+            
+            return response.text
+            
+        except Exception as e:
+            return f"Error: {str(e)}"
+
+# Test the class when run directly
+if __name__ == "__main__":
+    # Simple test
+    try:
+        gemini = Gemini("gemini")
+        print(f"✅ Gemini initialized with model: {gemini.model_name}")
+        
+        response = gemini.generate_text("Hello! How are you?")
+        print(f"Response: {response}")
+        
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        print("Make sure GEMINI_API_KEY is set in your environment variables.")
 

@@ -1,6 +1,6 @@
+import os 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Any
-import os 
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -11,7 +11,10 @@ class BaseLLM(ABC):
     Base class for LLM implementations.
     """
 
-    def __init__(self, model_name: str):
+    def __init__(self, model_name: str,
+                temperature: float = 0.5, 
+                token_limit: int = 1000,
+                system_prompt: str = ""):
         """
         Initialize the LLM.
 
@@ -28,7 +31,7 @@ class BaseLLM(ABC):
             "deepseek": "deepseek-chat",
             "gemini": "gemini-2.0-flash",
             "hume": "hume-voice",
-            "claude": "claude-3-5-sonnet-20240620"
+            "claude": "claude-opus-4-20250514"
         }
 
         model_api_key_dict = {
@@ -36,7 +39,7 @@ class BaseLLM(ABC):
             "deepseek": "DEEPSEEK_API_KEY",
             "gemini": "GEMINI_API_KEY",
             "hume": "HUME_API_KEY",
-            "claude": "CLAUDE_API_KEY"
+            "claude": "ANTHROPIC_API_KEY"
         }
 
         # initialize model name, api key name, and api key
@@ -46,6 +49,10 @@ class BaseLLM(ABC):
         
         if not self.api_key:
             raise ValueError(f"API key not found for {model_name}. Please set {self.model_api_key_name} environment variable.")
+        
+        self.temperature = temperature
+        self.token_limit = token_limit 
+        self.system_prompt = system_prompt
 
     @abstractmethod
     def extract_context(self, prompt: str) -> str:
@@ -59,7 +66,7 @@ class BaseLLM(ABC):
             A string representing the ID of the relevant context chunks.
             If no context is found, return an empty string.
         """
-        pass
+        raise NotImplementedError("This method is not implemented for this model.")
 
     @abstractmethod
     def ingest_context(self, context_id: str, context: str) -> None:
@@ -70,10 +77,11 @@ class BaseLLM(ABC):
             context_id: The ID of the context.
             context: The context data to ingest.
         """
-        pass
+        raise NotImplementedError("This method is not implemented for this model.")
+
 
     @abstractmethod
-    def generate_text(self, prompt: str, conversation_id: Optional[str] = None) -> str:
+    def generate_text(self, prompt: str) -> str:
         """
         Generate a text response from the LLM.
 
@@ -84,7 +92,7 @@ class BaseLLM(ABC):
         Returns:
             The generated text response.
         """
-        pass
+        raise NotImplementedError("This method is not implemented for this model.")
 
     def _get_api_key(self, api_key_name: str) -> str:
         """
