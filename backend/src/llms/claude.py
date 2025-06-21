@@ -2,17 +2,6 @@ import os
 import sys
 from anthropic import Anthropic
 
-# Add the src directory to the path so we can import from parent modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-try:
-    from llms.llm import BaseLLM
-    from prompts import get_prompt_for_model
-except ImportError:
-    # Fallback for when running the file directly
-    from llm import BaseLLM
-    from prompts.default import SYSTEM_PROMPT
-
 class Claude(BaseLLM):
     def __init__(self, model_name: str, temperature: float = 0.5, token_limit: int = 1000, system_prompt: str = ""):
         super().__init__(model_name, temperature, token_limit, system_prompt)
