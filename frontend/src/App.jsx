@@ -66,11 +66,62 @@ function AppContent() {
     )
     setIsLoading(true)
 
-    // Simulate AI response (replace with actual API call)
-    setTimeout(() => {
-      const aiMessage = {
+    try {
+      const response = await fetch('http://localhost:8080/api/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_prompt: message,
+          uid: currentUser?.uid || 'anonymous'
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Handle the response data here
+        console.log('Response:', data)
+        
+        // Add AI response to chat (you can modify this based on your API response structure)
+        const aiMessage = {
+          id: Date.now() + 1,
+          content: data.answer || 'Response received from server',
+          role: 'assistant',
+          timestamp: new Date()
+        }
+        
+        setChatSessions(prev => 
+          prev.map(chat => 
+            chat.id === currentChatId 
+              ? { ...chat, messages: [...chat.messages, aiMessage] }
+              : chat
+          )
+        )
+      } else {
+        console.error('Failed to send message:', response.status)
+        // Add error message to chat
+        const errorMessage = {
+          id: Date.now() + 1,
+          content: 'Sorry, there was an error processing your request.',
+          role: 'assistant',
+          timestamp: new Date()
+        }
+        
+        setChatSessions(prev => 
+          prev.map(chat => 
+            chat.id === currentChatId 
+              ? { ...chat, messages: [...chat.messages, errorMessage] }
+              : chat
+          )
+        )
+      }
+    } catch (error) {
+      console.error('Error sending message:', error)
+      // Add error message to chat
+      const errorMessage = {
         id: Date.now() + 1,
-        content: `This is a simulated response to: "${message}". In a real application, this would be replaced with an actual API call to your backend.`,
+        content: 'Sorry, there was an error processing your request.',
         role: 'assistant',
         timestamp: new Date()
       }
@@ -78,12 +129,13 @@ function AppContent() {
       setChatSessions(prev => 
         prev.map(chat => 
           chat.id === currentChatId 
-            ? { ...chat, messages: [...chat.messages, aiMessage] }
+            ? { ...chat, messages: [...chat.messages, errorMessage] }
             : chat
         )
       )
-      setIsLoading(false)
-    }, 1000)
+    }
+    
+    setIsLoading(false)
   }
 
   if (!currentUser) {

@@ -16,7 +16,7 @@ class GPT(BaseLLM):
         # For now, return empty string - you can implement vector search later
         return ""
 
-    def ingest_context(self, context_id: str, context: str) -> None:
+    def ingest_context(self, context_id: str, context: str) -> str:
         # For now, do nothing - you can implement context storage later
         return ""
 
@@ -43,7 +43,7 @@ class GPT(BaseLLM):
                 ]
             )
             # NOTE: should probably view the repsonse object
-            return response.choices[0].message.content
+            return response.choices[0].message.content or ""
         except Exception as e:
             return f"Error: {str(e)}"
     
