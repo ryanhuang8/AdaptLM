@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Send } from 'lucide-react'
+import { FaPaperPlane } from 'react-icons/fa'
 
 const InputArea = ({ onSendMessage, isLoading }) => {
   const [message, setMessage] = useState('')
@@ -36,8 +36,9 @@ const InputArea = ({ onSendMessage, isLoading }) => {
             type="submit"
             disabled={!message.trim() || isLoading}
             className="send-button"
+            title="Send message"
           >
-            <Send size={16} />
+            <FaPaperPlane size={16} />
           </button>
         </div>
         <div className="input-footer">
