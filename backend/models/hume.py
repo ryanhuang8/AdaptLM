@@ -82,7 +82,7 @@ class Hume(BaseLLM):
             
             async with self.client.empathic_voice.chat.connect_with_callbacks(
                 options=ChatConnectOptions(config_id=self.config_id),
-                on_response=handle_response
+                on_message=handle_response
             ) as socket:
                 await socket.send_text(full_prompt)
                 # Wait a bit for response to be processed

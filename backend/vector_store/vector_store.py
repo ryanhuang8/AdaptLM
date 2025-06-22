@@ -62,21 +62,22 @@ class PineconeVectorStore:
     def _get_or_create_index(self):
         """Get existing index or create a new one."""
         try:
+            index_username = self.index_name.lower().replace("_", "")
             # Check if index exists
-            if self.index_name in [idx.name for idx in self.pc.list_indexes()]:
-                return self.pc.Index(self.index_name)
+            if index_username in [idx.name for idx in self.pc.list_indexes()]:
+                return self.pc.Index(index_username)
             else:
                 # Create new index
                 self.pc.create_index(
-                    name=self.index_name,
+                    name=index_username,
                     dimension=self.dimension,
                     metric="cosine",
                     spec=ServerlessSpec(cloud=self.cloud, region=self.environment)
                 )
                 # Wait for index to be ready
-                print(f"Creating index '{self.index_name}' with dimension {self.dimension}...")
+                print(f"Creating index '{index_username}' with dimension {self.dimension}...")
                 time.sleep(5)  # Give it a moment to start
-                return self.pc.Index(self.index_name)
+                return self.pc.Index(index_username)
         except Exception as e:
             raise Exception(f"Failed to initialize Pinecone index: {e}")
     
@@ -98,7 +99,6 @@ class PineconeVectorStore:
         print(f"   Generating embeddings for {len(texts)} texts...")
         # Generate embeddings using SentenceTransformers
         embeddings = self.embedding_manager.embed_texts(texts)
-        print(f"   Generated {len(embeddings)} embeddings with dimension {len(embeddings[0])}")
         
         # Generate IDs if not provided
         if ids is None:
@@ -113,7 +113,6 @@ class PineconeVectorStore:
                 "metadata": {"text": texts[i]}
             })
         
-        print(f"   Upserting {len(vectors)} vectors to Pinecone...")
         # Upsert to Pinecone
         try:
             self.index.upsert(vectors=vectors)
@@ -135,14 +134,11 @@ class PineconeVectorStore:
         Returns:
             List of dictionaries containing id, score, and metadata
         """
-        print(f"   Generating query embedding for: '{query_text}'")
         # Generate query embedding using SentenceTransformers
         query_embedding = self.embedding_manager.embed_texts([query_text])[0]
-        print(f"   Query embedding dimension: {len(query_embedding)}")
         
         # Query Pinecone
         try:
-            print(f"   Querying Pinecone with top_k={top_k}...")
             results = self.index.query(
                 vector=query_embedding,
                 top_k=top_k,
