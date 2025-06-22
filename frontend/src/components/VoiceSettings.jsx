@@ -1,21 +1,14 @@
 import { useState } from 'react'
 import { FaCog, FaMicrophone, FaVolumeUp, FaCheck } from 'react-icons/fa'
+import { useVoice } from '../contexts/VoiceContext'
 import vapi from '../vapi'
 
 const VoiceSettings = ({ isOpen, onClose }) => {
-  const [selectedVoice, setSelectedVoice] = useState('pNInz6obpgDQGcFmaJgB')
+  const { selectedVoice, voiceOptions, updateVoice } = useVoice()
   const [isTesting, setIsTesting] = useState(false)
 
-  const voiceOptions = [
-    { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam (Male)', provider: '11labs' },
-    { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel (Female)', provider: '11labs' },
-    { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi (Female)', provider: '11labs' },
-    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella (Female)', provider: '11labs' },
-  ]
-
   const handleVoiceChange = (voiceId) => {
-    setSelectedVoice(voiceId)
-    // Here you would update the Vapi configuration
+    updateVoice(voiceId)
     console.log('Voice changed to:', voiceId)
   }
 

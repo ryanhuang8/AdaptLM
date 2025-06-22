@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import { Plus, MessageSquare, Settings, User, Trash2, LogOut, Mic } from 'lucide-react'
+import { useVoice } from '../contexts/VoiceContext'
 import VoiceSettings from './VoiceSettings'
 
 const Sidebar = ({ chatSessions, currentChatId, onNewChat, onSwitchChat, onLogout, user }) => {
   const [showVoiceSettings, setShowVoiceSettings] = useState(false)
+  const { selectedVoice, voiceOptions } = useVoice()
+
+  const currentVoice = voiceOptions.find(voice => voice.id === selectedVoice)
 
   const handleDeleteChat = (e, chatId) => {
     e.stopPropagation()
@@ -61,7 +65,7 @@ const Sidebar = ({ chatSessions, currentChatId, onNewChat, onSwitchChat, onLogou
           </div>
           <button className="sidebar-btn" onClick={() => setShowVoiceSettings(true)}>
             <Mic size={16} />
-            <span>Voice Settings</span>
+            <span>Voice: {currentVoice?.name || 'Adam'}</span>
           </button>
           <button className="sidebar-btn" onClick={onLogout}>
             <LogOut size={16} />

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { FaMicrophone, FaMicrophoneSlash, FaVolumeUp } from 'react-icons/fa'
+import { useVoice } from '../contexts/VoiceContext'
 import vapi from '../vapi'
 
 const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMode, onVoiceModeToggle, onVoiceMessage }) => {
@@ -8,9 +9,10 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
   const [error, setError] = useState('')
   const [volumeLevel, setVolumeLevel] = useState(0)
   const [conversationHistory, setConversationHistory] = useState([])
+  const { selectedVoice } = useVoice()
 
-  // Assistant options for Vapi
-  const assistantOptions = {
+  // Assistant options for Vapi - now uses the selected voice from context
+  const getAssistantOptions = () => ({
     name: 'ContextLLM Assistant',
     transcriber: {
       provider: 'deepgram',
@@ -19,7 +21,7 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
     },
     voice: {
       provider: '11labs',
-      voiceId: 'pNInz6obpgDQGcFmaJgB', // Adam voice
+      voiceId: selectedVoice,
     },
     model: {
       provider: 'openai',
@@ -31,7 +33,7 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
         },
       ],
     },
-  }
+  })
 
   useEffect(() => {
     // Set up event listeners for Vapi
@@ -130,13 +132,13 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
       vapi.off('message', handleMessage)
       vapi.off('error', handleError)
     }
-  }, [onMessageReceived, setIsListening, isVoiceMode, onVoiceMessage])
+  }, [onMessageReceived, setIsListening, isVoiceMode, onVoiceMessage, selectedVoice])
 
   const startCall = async () => {
     try {
       setError('')
       setConversationHistory([])
-      vapi.start(assistantOptions)
+      vapi.start(getAssistantOptions())
     } catch (error) {
       console.error('Failed to start call:', error)
       setError('Failed to start voice input. Please check your microphone permissions.')
