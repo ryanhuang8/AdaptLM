@@ -36,6 +36,25 @@ export const fetchContext = async () => {
   }
 }
 
+export const postContext = async (context) => {
+  try {
+    const response = await fetch('http://localhost:8080/api/post_context', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ context })
+    })
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    return true
+  } catch (error) {
+    console.error('Error posting context:', error)
+    return false
+  }
+}
+
 export const VoiceProvider = ({ children }) => {
   const [selectedVoice, setSelectedVoice] = useState('pNInz6obpgDQGcFmaJgB') // Default to Adam voice
 

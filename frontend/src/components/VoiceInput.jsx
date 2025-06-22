@@ -12,6 +12,7 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
   const [conversationHistory, setConversationHistory] = useState([])
   const [voiceLLM, setVoiceLLM] = useState('gpt')
   const [context, setContext] = useState(["This is a placeholder context. RAG pipeline not yet implemented."])
+  const [lastUserMessage, setLastUserMessage] = useState('')
   const { selectedVoice } = useVoice()
 
   // Fetch voice LLM and context on component mount and when needed
@@ -40,12 +41,41 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
     await stopCall()
   }
 
+  // Function to post conversation pair to context
+  const postConversationPair = async (userPrompt, assistantResponse) => {
+    try {
+      const conversation_pair = `User: ${userPrompt}\nAssistant: ${assistantResponse}`
+      
+      const response = await fetch('http://localhost:8080/api/post_context', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          context: conversation_pair
+        })
+      })
+
+      if (response.ok) {
+        console.log('✅ Conversation pair posted to context:', conversation_pair)
+      } else {
+        console.error('❌ Failed to post conversation pair:', response.status)
+      }
+    } catch (error) {
+      console.error('❌ Error posting conversation pair:', error)
+    }
+  }
+
   // Assistant options for Vapi - now uses the selected voice, voice LLM, and context
   const getAssistantOptions = () => {
     // Create system message with context
     const contextMessage = context.length > 0 ? 
-      `You are a helpful AI assistant for ContextLLM. Use the following context to provide accurate and helpful responses:\n\n${context.join('\n\n')}\n\nProvide clear, concise, and helpful responses to user queries based on this context.` :
+      `You are a helpful AI assistant for ContextLLM. Use the following context to provide accurate and helpful responses:\n\n${context}\n\nProvide clear, concise, and helpful responses to user queries based on this context.` :
       'You are a helpful AI assistant for ContextLLM. Provide clear, concise, and helpful responses to user queries.'
+
+    console.log('Context:', context)
+
+    // TODO: add if/else statements for different LLMs
 
     return {
       name: 'ContextLLM Assistant',
@@ -119,6 +149,15 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
           
           // Add to conversation history
           setConversationHistory(prev => [...prev, chatMessage])
+          
+          // Track user messages and post conversation pairs
+          if (message.role === 'user') {
+            setLastUserMessage(message.transcript)
+          } else if (message.role === 'assistant' && lastUserMessage) {
+            // Post conversation pair when we have both user and assistant messages
+            postConversationPair(lastUserMessage, message.transcript)
+            setLastUserMessage('') // Reset for next conversation pair
+          }
           
           // Send to parent component to add to chat
           if (onVoiceMessage) {
