@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from services.llm_chosen import llm_response
+from services.llm_chosen import LLMRouter
 
 from classifier.model_classifier import ModelRouter
 from vector_store import PineconeVectorStore
@@ -18,6 +18,7 @@ model_router = None
 previous_prompt = ""
 previous_output = ""
 vector_store = None # TODO: replace with uid
+llm_router = None
 
 def initialize_model_router():
     """Initialize the model router asynchronously"""
@@ -43,7 +44,18 @@ def initialize_vector_store():
     except Exception as e:
         vector_store = None
         return False
-        
+
+def initialize_llm_router():
+    """Initialize the LLM router"""
+    global llm_router
+    try:
+        llm_router = LLMRouter()
+        print("LLM router initialized successfully")
+        return True
+    except Exception as e:
+        print(f"Error initializing LLM router: {e}")
+        llm_router = None
+        return False
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -77,7 +89,7 @@ def process_query():
             return jsonify({"error": "No user prompt provided"}), 400
         
         # Use the model router to classify the prompt and choose the appropriate LLMAdd commentMore actions
-        global model_router
+        global model_router, llm_router
         if model_router is None:
             chosen_llm = "gpt"
             print("Warning: Model router not initialized, using fallback LLM")
@@ -90,7 +102,15 @@ def process_query():
                 chosen_llm = "gpt"  # Fallback to GPT
         print(f"Chosen LLM: {chosen_llm}")
 
-        response = llm_response(chosen_llm, uid, vector_store, user_prompt, previous_prompt, previous_output)
+        # Use LLM router if available, otherwise fallback to legacy function
+        if llm_router is not None:
+            response = llm_router.llm_response(chosen_llm, uid, vector_store, user_prompt, previous_prompt, previous_output)
+            conversation_state = llm_router.get_conversation_state()
+        else:
+            # Fallback to legacy function
+            from services.llm_chosen import llm_response
+            response = llm_response(chosen_llm, uid, vector_store, user_prompt, previous_prompt, previous_output)
+            conversation_state = {"is_in_agent_mode": False, "original_llm": chosen_llm}
         
         # Placeholder response
         response = {
@@ -98,7 +118,8 @@ def process_query():
             "chosen_llm": chosen_llm,
             "context_used": [],
             "confidence_score": 0.0,
-            "processing_time": 0.0
+            "processing_time": 0.0,
+            "conversation_state": conversation_state
         }
         
         return jsonify(response)
@@ -109,6 +130,26 @@ def process_query():
             "message": str(e)
         }), 500
 
+@app.route('/api/conversation-state', methods=['GET'])
+def get_conversation_state():
+    """Get the current conversation state"""
+    global llm_router
+    if llm_router is not None:
+        state = llm_router.get_conversation_state()
+        return jsonify(state)
+    else:
+        return jsonify({"error": "LLM router not initialized"}), 500
+
+@app.route('/api/reset-conversation', methods=['POST'])
+def reset_conversation():
+    """Reset the conversation state"""
+    global llm_router
+    if llm_router is not None:
+        llm_router.reset_conversation_state()
+        return jsonify({"message": "Conversation reset successfully"})
+    else:
+        return jsonify({"error": "LLM router not initialized"}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
@@ -117,4 +158,5 @@ if __name__ == '__main__':
     # Initialize model router on startupAdd commentMore actions
     initialize_model_router()
     initialize_vector_store()
+    initialize_llm_router()
     app.run(host='0.0.0.0', port=port, debug=debug) 
