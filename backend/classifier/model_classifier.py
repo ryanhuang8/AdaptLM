@@ -10,8 +10,15 @@ from pathlib import Path
 class ModelRouter:
     def __init__(self):
         # Get the directory where this file is located and construct the path
-        current_dir = Path(os.path.dirname(os.path.abspath(__file__)))
-        self.classifier_path = os.path.join(current_dir.parent, "data", "vellum_leaderboard_data.json")
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Create data directory if it doesn't exist
+        data_dir = os.path.join(current_dir, "data")
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+            print(f"Created data directory: {data_dir}")
+        
+        self.classifier_path = os.path.join(data_dir, "vellum_leaderboard_data.json")
         if not os.path.exists(self.classifier_path):
             run_vellum_scraper(self.classifier_path)
         with open(self.classifier_path, "r") as f:
