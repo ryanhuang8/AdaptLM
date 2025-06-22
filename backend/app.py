@@ -68,6 +68,47 @@ def health_check():
         "model_router": router_status
     })
 
+@app.route('/api/get_voice_llm', methods=['GET'])
+def get_llm():
+    """Get the LLM for """
+    global model_router
+    if model_router is None:
+        chosen_llm = "gpt"
+        print("Warning: Model router not initialized, using fallback LLM")
+    else:
+        try:
+            user_prompt = "Help me answer general questions"
+            chosen_llm = model_router.classify(user_prompt)
+            print(f"Prompt classified to use: {chosen_llm}")
+        except Exception as e:
+            print(f"Error classifying prompt: {e}")
+            chosen_llm = "gpt"  # Fallback to GPT
+    print(f"Chosen LLM: {chosen_llm}")
+    response = {
+        "chosen_llm": chosen_llm
+    }
+    return jsonify(response)
+
+@app.route('/api/get_context', methods=['GET'])
+def get_context():
+    """Get the context for the user"""
+    global vector_store
+    if vector_store is None:
+        return jsonify({
+            "context": ["This is a placeholder context."]
+        })
+    else:
+        user_prompt = "Help me answer general questions"
+        results = vector_store.query(user_prompt, top_k=3)
+
+        context_parts = []
+        for result in results:
+            if 'metadata' in result and 'text' in result['metadata']:
+                context_parts.append(result['metadata']['text'])
+        return jsonify({
+            "context": "\n".join(context_parts)
+        })
+
 @app.route('/api/initialize', methods=['POST'])
 def initialize_router():
     """Manual endpoint to initialize the model router"""
