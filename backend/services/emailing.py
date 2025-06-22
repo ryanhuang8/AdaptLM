@@ -82,10 +82,7 @@ class GmailAPI:
 class SendEmailTool:
     def __init__(self):
         self.gmail_api = GmailAPI()
-        try:
-            self.gmail_api.authenticate()
-        except Exception as e:
-            print(f"Warning: Failed to initialize Gmail API: {str(e)}")
+
     
     def execute(self, to: str, subject: str, body: str):
         """Execute the email sending"""
