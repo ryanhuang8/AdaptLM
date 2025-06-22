@@ -1,3 +1,4 @@
+import threading
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
@@ -107,6 +108,37 @@ def get_context():
                 context_parts.append(result['metadata']['text'])
         return jsonify({
             "context": "\n".join(context_parts)
+        })
+
+@app.route('/api/post_context', methods=['POST'])
+def post_context():
+    """Post the context for the user"""
+    global vector_store
+    if vector_store is None:
+        return jsonify({
+            "context": ["This is a placeholder context."]
+        })
+    else:
+        data = request.get_json()
+        context = data.get('context', '')
+        try:
+            def ingest_worker():
+                try:
+                    vector_store.upsert_texts([context])
+                    print(f"✅ Context ingested asynchronously: {context[:50]}...")
+                except Exception as e:
+                    print(f"❌ Error ingesting context asynchronously: {e}")
+            
+            # Start ingestion in background thread
+            thread = threading.Thread(target=ingest_worker, daemon=True)
+            thread.start()
+            
+        except Exception as e:
+            print(f"Error starting async context ingestion: {e}")
+            
+        return jsonify({
+            "success": True,
+            "message": "Context posted successfully"
         })
 
 @app.route('/api/initialize', methods=['POST'])
