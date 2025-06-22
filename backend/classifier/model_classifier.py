@@ -4,6 +4,37 @@ from openai import OpenAI
 from .vellum_scraper import run_vellum_scraper
 
 class ModelRouter:
+    SYSTEM_PROMPT = """
+You are an expert at classifying user queries into the most appropriate task categories for LLM selection.
+
+You should output ONLY one of the following (without explanation):
+- "gpt" 
+- "gemini"
+- "claude"
+- "groq"
+
+Selection rules:
+- gpt: use for general purpose queries, math, or when broad knowledge is needed
+- claude: use for code-related queries
+- groq: use for speed or when a low-latency response is preferred
+- gemini: use for reasoning-heavy or complex thought tasks
+
+Examples:
+user: what is 123 + 456?
+output: gpt
+
+user: write me a python function to sort a list
+output: claude
+
+user: give me a quick summary of the news
+output: groq
+
+user: solve this logic puzzle for me
+output: gemini
+
+user: what is two plus two?
+output: gpt
+    """
     def __init__(self):
         # Get the directory where this file is located and construct the path
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -33,6 +64,7 @@ class ModelRouter:
         
         # Classification prompt template
         self.classification_prompt = self._create_classification_prompt()
+        self.system_prompt = self.SYSTEM_PROMPT
 
     def _create_classification_prompt(self) -> str:
         """Create the classification prompt for the LLM"""
@@ -101,7 +133,7 @@ class ModelRouter:
         """
         try:
             # Create the full classification prompt
-            full_prompt = self.classification_prompt + prompt
+            full_prompt = prompt
             
             # Get classification from LLM
             response = self.client.chat.completions.create(
@@ -109,7 +141,7 @@ class ModelRouter:
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are a precise classifier. Respond with only the exact category name, nothing else."
+                        "content": self.SYSTEM_PROMPT
                     },
                     {
                         "role": "user",
@@ -117,25 +149,40 @@ class ModelRouter:
                     }
                 ],
                 max_tokens=50,
-                temperature=0.1  # Low temperature for consistent classification
+                temperature=0.001  # Low temperature for consistent classification
             )
+
+            appointment_keywords = [
+            'appointment', 'schedule', 'booking', 'meeting', 'calendar',
+            'reserve', 'book', 'arrange', 'set up', 'organize',
+            'tomorrow', 'next week', 'this week', 'today at',
+            '2 pm', '3 pm', '4 pm', '5 pm', 'morning', 'afternoon', 'evening'
+            ]
+            if any(keyword in prompt.lower() for keyword in appointment_keywords):
+                return "gpt"
             
+            # Keywords that trigger email routing
+            email_keywords = [
+                'email', 'send email', 'mail'
+            ]
+            if any(keyword in prompt.lower() for keyword in email_keywords):
+                return "gpt"
             # Extract the classified category
             response_content = response.choices[0].message.content
             if response_content is None:
                 print("Warning: LLM returned empty response, using fallback")
                 return "gpt"
             
-            classified_category = response_content.strip()
+            classified_model = response_content.strip()
+            print(f"LLM classified prompt as: {classified_model}")
             
             # Map the category to model family
-            if classified_category in self.model_categories:
-                selected_model = self.model_categories[classified_category]
-                print(f"LLM classified prompt as: {classified_category} → {selected_model}")
-                return selected_model
+            if classified_model in self.model_categories.values():
+                print(f"LLM classified prompt as: {classified_model}")
+                return classified_model
             else:
                 # Fallback if classification doesn't match any category
-                print(f"Warning: LLM returned unknown category '{classified_category}', using fallback")
+                print(f"Warning: LLM returned unknown category '{classified_model}', using fallback")
                 return "gpt"  # Default fallback
                 
         except Exception as e:

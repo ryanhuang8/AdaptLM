@@ -118,7 +118,7 @@ class PineconeVectorStore:
             print(f"   Error upserting vectors: {e}")
             raise Exception(f"Failed to upsert vectors: {e}")
     
-    def query(self, query_text: str, top_k: int = 5, filter_dict: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    def query(self, query_text: str, top_k: int = 7, filter_dict: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
         Query the vector store for similar texts using SentenceTransformers embeddings.
         

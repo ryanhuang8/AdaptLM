@@ -91,7 +91,7 @@ class BaseLLM(ABC):
             A string containing relevant context chunks, or empty string if none found
         """
         try:
-            results = self.vector_store.query(prompt, top_k=3)
+            results = self.vector_store.query(prompt, top_k=7)
             
             if not results:
                 return ""

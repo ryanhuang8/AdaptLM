@@ -99,7 +99,7 @@ def get_context():
         })
     else:
         user_prompt = "Help me answer general questions"
-        results = vector_store.query(user_prompt, top_k=3)
+        results = vector_store.query(user_prompt, top_k=7)
 
         context_parts = []
         for result in results:
@@ -165,6 +165,7 @@ def process_query():
         global model_router, llm_router
         if model_router is None:
             chosen_llm = "gpt"
+            actual_llm = chosen_llm
             print("Warning: Model router not initialized, using fallback LLM")
         else:
             try:
@@ -192,10 +193,11 @@ def process_query():
             conversation_state = {"is_in_agent_mode": False, "original_llm": chosen_llm}
             actual_llm = chosen_llm
         
+        print(f"Actual LLM------------HIGHLIGHT: {actual_llm}")
         # Placeholder response
         response = {
             "answer": response,
-            "chosen_llm": actual_llm,
+            "chosen_llm": chosen_llm,
             "context_used": [],
             "confidence_score": 0.0,
             "processing_time": 0.0,
