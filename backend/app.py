@@ -26,7 +26,6 @@ def initialize_model_router():
     global model_router
     try:
         model_router = ModelRouter()
-        model_router.initialize_model()
         print("Model router initialized successfully")
         return True
     except Exception as e:
@@ -116,14 +115,15 @@ def post_context():
     global vector_store
     if vector_store is None:
         return jsonify({
-            "context": ["This is a placeholder context."]
-        })
+            "error": "Vector store not initialized"
+        }), 500
     else:
         data = request.get_json()
         context = data.get('context', '')
         try:
             def ingest_worker():
                 try:
+                    assert vector_store is not None
                     vector_store.upsert_texts([context])
                     print(f"✅ Context ingested asynchronously: {context[:50]}...")
                 except Exception as e:
@@ -176,7 +176,7 @@ def process_query():
         print(f"Chosen LLM: {chosen_llm}")
 
         # Use LLM router if available, otherwise fallback to legacy function
-        if llm_router is not None:
+        if llm_router is not None and vector_store is not None:
             response = llm_router.llm_response(chosen_llm, uid, vector_store, user_prompt, previous_prompt, previous_output)
             conversation_state = llm_router.get_conversation_state()
             
