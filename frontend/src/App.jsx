@@ -81,6 +81,8 @@ function AppContent() {
         })
       })
 
+      console.log('Response:', response)
+
       if (response.ok) {
         const data = await response.json()
         // Handle the response data here
