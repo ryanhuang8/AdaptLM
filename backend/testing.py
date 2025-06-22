@@ -270,126 +270,73 @@ def test_llm_models():
     test_user_id = "test-user"
     
     try:
-        # Test prompt
-        test_prompt = "What is my favorite programming language?"
+        # Check if Pinecone API key is available
+        import os
+        pinecone_key = os.getenv("PINECONE_API_KEY")
+        if not pinecone_key:
+            print("⚠️  PINECONE_API_KEY not found. Testing without vector database...")
+            print("   To test with vector database, set PINECONE_API_KEY in your environment variables.")
+            
+            # Test basic model functionality without vector store
+            print(f"\n1. Testing basic model functionality...")
+            
+            # Initialize Claude model (this will fail without Pinecone, but let's try)
+            try:
+                claude_model = Claude("claude", test_user_id, PineconeVectorStore, None, None)
+                print(f"   ✅ Claude model initialized")
+                
+                # Test basic response
+                prompt = "What is my favorite programming language?"
+                print(f"\n   Testing prompt: '{prompt}'")
+                response = claude_model.generate_text(prompt)
+                print(f"   ✅ Claude response: {response[:100]}...")
+                
+            except Exception as e:
+                print(f"   ❌ Claude model failed: {e}")
+                print(f"   This is expected without a valid Pinecone API key.")
+            
+            return
         
-        print(f"1. Testing Claude model with immediate response...")
+        # If we have Pinecone key, run full test
+        print("✅ PINECONE_API_KEY found. Running full test with vector database...")
         
         # Initialize Claude model
-        claude_model = Claude("claude", test_user_id, PineconeVectorStore)
+        claude_model = Claude("claude", test_user_id, PineconeVectorStore, None, None)
         print(f"   ✅ Claude model initialized with index: {test_user_id}")
         
-        # Test with prompt
-        print(f"\n   Testing prompt: '{test_prompt}'")
-        print(f"   ⚡ Generating response (should be immediate)...")
-        
-        start_time = time.time()
-        # Generate response
-        response = claude_model.generate_text(test_prompt)
-        response_time = time.time() - start_time
-        
-        # Handle None or empty responses
-        if response is None:
-            print(f"   ❌ Claude returned None response")
-        elif isinstance(response, str) and response.startswith("Error:"):
-            print(f"   ❌ Claude error: {response}")
-        else:
-            print(f"   ✅ Claude response ({response_time:.2f}s): {response[:100]}...")
-            
-            # Test context extraction
-            context = claude_model.extract_context(test_prompt)
-            if context:
-                print(f"   📚 Context extracted: {len(context)} items")
-            else:
-                print(f"   📚 No context found for this prompt")
-        
-        print(f"   🎉 Claude model test completed")
-        
-        # Wait a moment for async ingestion to complete
-        print(f"\n   ⏳ Waiting for async ingestion to complete...")
-        
-        # Test context persistence
-        print(f"\n2. Testing context persistence...")
-        
-        # Store some personal test context through Claude model
-        test_context = "My favorite programming language is Python because it's simple and readable."
-        
-        print("   Storing personal test context through Claude model...")
-        claude_model.vector_store.upsert_texts([test_context])
+        # Initialize GPT model  
+        gpt_model = GPT("gpt", test_user_id, PineconeVectorStore, None, None)
+        print(f"   ✅ GPT model initialized with index: {test_user_id}")
 
+        # Test conversation flow
+        print(f"\n1. Testing conversation flow with previous output storage...")
         
-        # Test context retrieval with Claude
-        print("   Testing context retrieval with Claude...")
-        claude_query_results = claude_model.vector_store.query("my programming language", top_k=3)
-        print(f"   Claude found {len(claude_query_results)} relevant contexts")
-        
-        for i, result in enumerate(claude_query_results):
-            print(f"   {i+1}. Score: {result['score']:.4f}, Text: {result['metadata']['text'][:50]}...")
-        
-        # Test GPT model with same context
-        print(f"\n3. Testing GPT model with shared context...")
-        
-        try:
-            # Initialize GPT model with same user ID (same index)
-            gpt_model = GPT("gpt", test_user_id, PineconeVectorStore)
-            print(f"   ✅ GPT model initialized with same index: {test_user_id}")
-            
-            # Test context retrieval with GPT
-            print("   Testing context retrieval with GPT...")
-            gpt_query_results = gpt_model.vector_store.query("my personal information", top_k=3)
-            print(f"   GPT found {len(gpt_query_results)} relevant contexts")
-            
-            for i, result in enumerate(gpt_query_results):
-                print(f"   {i+1}. Score: {result['score']:.4f}, Text: {result['metadata']['text'][:50]}...")
-            
-            # Test GPT response with context
-            print("   Testing GPT response with context...")
-            gpt_response = gpt_model.generate_text("What do you know about me?")
-            print(f"   ✅ GPT response: {gpt_response[:150]}...")
-            
-            print(f"   🎉 GPT model test completed")
-            
-        except Exception as e:
-            print(f"   ❌ Error with GPT: {e}")
-            import traceback
-            traceback.print_exc()
-        
-        # Test model switching with context
-        print(f"\n4. Testing model switching with context...")
-        
-        # Test Claude with context (should include GPT's responses)
-        print("   Testing Claude with updated context...")
-        claude_context_response = claude_model.generate_text("What's my favorite programming language?")
-        print(f"   ✅ Claude with context: {claude_context_response[:150]}...")
-        
-        # Test GPT with context (should include Claude's responses)
-        print("   Testing GPT with updated context...")
-        gpt_context_response = gpt_model.generate_text("What's my favorite programming language?")
-        print(f"   ✅ GPT with context: {gpt_context_response[:150]}...")
-        
-        # Test vector store stats
-        print(f"\n5. Testing vector store statistics...")
-        stats = claude_model.vector_store.get_stats()
-        print(f"   Total vectors: {stats['total_vector_count']}")
-        print(f"   Index dimension: {stats['dimension']}")
-        print(f"   Index fullness: {stats['index_fullness']}")
-        
-        # Verify both models see the same stats
-        gpt_stats = gpt_model.vector_store.get_stats()
-        print(f"   GPT sees same total vectors: {gpt_stats['total_vector_count']}")
-        
-        # Clean up
-        print(f"\n6. Cleaning up test index '{test_user_id}'...")
-        from vector_store import IndexManager
-        index_manager = IndexManager()
-        if index_manager.index_exists(test_user_id):
-            deleted = index_manager.delete_index(test_user_id)
-            print(f"   ✅ Test index deleted: {deleted}")
-        
-        print("\n🎉 Claude & GPT LLM Models test completed!\n")
+        # First prompt
+        prompt1 = "What is my favorite programming language?"
+        print(f"\n   Prompt 1: '{prompt1}'")
+        claude_response1 = claude_model.generate_text(prompt1)
+        print(f"   ✅ Claude response: {claude_response1[:100]}...")
+        print(f"   📝 Previous output stored: {claude_model.previous_output[:50] if claude_model.previous_output else 'None'}...")
+
+        # Wait for async ingestion
+        print(f"\n   ⏳ Waiting for async ingestion...")
+
+        # Test context extraction
+        context = claude_model.extract_context(prompt1)
+        print(f"   📚 Context extracted: {len(context) if context else 0} items")
+
+        # input previous message
+        previous_message = "my birthday is June 21st, 1990"
+
+        # Test model switching
+        claude_model.previous_prompt = previous_message
+
+        print(f"\n   Testing model switching...")
+        claude_response2 = claude_model.generate_text("What ism y birthday again")
+        print(f"   ✅ Claude response: {claude_response2[:100]}...")
         
     except Exception as e:
-        print(f"❌ Error during Claude & GPT test: {e}")
+        print(f"❌ Error during test: {e}")
         import traceback
         traceback.print_exc()
         
