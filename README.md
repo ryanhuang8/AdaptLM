@@ -1,4 +1,6 @@
-# ContextLLM Backend
+# 
+
+# AdaptLM Backend
 
 A Flask backend that implements a Retrieval-Augmented Generation (RAG) system with intelligent LLM routing.
 

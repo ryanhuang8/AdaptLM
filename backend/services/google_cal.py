@@ -162,9 +162,11 @@ class ScheduleAppointmentTool:
         }
         
 if __name__ == "__main__":
-
-    os.chdir(r"C:\Users\jzou2\VSCode\ContextLLM\backend")
-    print(os.getcwd())
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    backend_dir = os.path.dirname(script_dir)
+    
+    os.chdir(backend_dir)
+    print(f"Changed to backend directory: {os.getcwd()}")
     
     google_cal = GoogleCalendarAPI()
     google_cal.authenticate()

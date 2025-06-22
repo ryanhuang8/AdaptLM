@@ -70,8 +70,8 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
   const getAssistantOptions = () => {
     // Create system message with context
     const contextMessage = Array.isArray(context) && context.length > 0 ? 
-      `You are a helpful AI assistant for ContextLLM. Use the following context to provide accurate and helpful responses:\n\n${context.join('\n\n')}\n\nProvide clear, concise, and helpful responses to user queries based on this context.` :
-      'You are a helpful AI assistant for ContextLLM. Provide clear, concise, and helpful responses to user queries.'
+      `You are a helpful AI assistant for AdaptLM. Use the following context to provide accurate and helpful responses:\n\n${context.join('\n\n')}\n\nProvide clear, concise, and helpful responses to user queries based on this context.` :
+      'You are a helpful AI assistant for AdaptLM. Provide clear, concise, and helpful responses to user queries.'
 
     console.log('Context:', context)
     console.log('Voice LLM:', voiceLLM)
@@ -94,7 +94,7 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
     }
 
     return {
-      name: 'ContextLLM Assistant',
+      name: 'AdaptLM Assistant',
       transcriber: {
         provider: 'deepgram',
         model: 'nova-2',

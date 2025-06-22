@@ -1,7 +1,3 @@
-"""
-Pinecone Vector Store implementation for ContextLLM using SentenceTransformers embeddings.
-"""
-
 import os
 import uuid
 import time
@@ -17,7 +13,7 @@ class PineconeVectorStore:
     Pinecone Vector Store for storing and retrieving embeddings using SentenceTransformers.
     """
     
-    def __init__(self, index_name: str = "contextllm-index",
+    def __init__(self, index_name: str = "adaptlm-index",
                 model_name: str = "all-MiniLM-L6-v2",
                 environment: str = "us-east-1", 
                 cloud: str = "aws"

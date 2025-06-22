@@ -13,7 +13,7 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
 
   // Assistant options for Vapi - now uses the selected voice from context
   const getAssistantOptions = () => ({
-    name: 'ContextLLM Assistant',
+    name: 'AdaptLM Assistant',
     transcriber: {
       provider: 'deepgram',
       model: 'nova-2',
@@ -29,7 +29,7 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful AI assistant for ContextLLM. Provide clear, concise, and helpful responses to user queries.',
+          content: 'You are a helpful AI assistant for AdaptLM. Provide clear, concise, and helpful responses to user queries.',
         },
       ],
     },

@@ -1,8 +1,3 @@
-"""
-Prompts package for ContextLLM.
-This package contains system prompts for different LLM models and use cases.
-"""
-
 # Import all prompts from the default module
 from .default import (
     SYSTEM_PROMPT,

@@ -32,7 +32,7 @@ const ChatArea = ({ messages, isLoading, currentLLM }) => {
     <div className="chat-area">
       {messages.length === 0 && !isLoading && (
         <div className="welcome-message">
-          <h1>ContextLLM</h1>
+          <h1>AdaptLM</h1>
           <p>How can I help you today?</p>
         </div>
       )}

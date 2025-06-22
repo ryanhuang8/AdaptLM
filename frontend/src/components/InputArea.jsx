@@ -46,7 +46,7 @@ const InputArea = ({ onSendMessage, isLoading, onVoiceMessage, isVapiListening, 
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={isVoiceMode ? "Voice mode active - use microphone to speak" : "Message ContextLLM..."}
+            placeholder={isVoiceMode ? "Voice mode active - use microphone to speak" : "Message AdaptLM..."}
             disabled={isLoading || isVapiListening}
             rows={1}
             className={`message-input ${isVoiceMode ? 'voice-mode' : ''}`}
@@ -71,7 +71,7 @@ const InputArea = ({ onSendMessage, isLoading, onVoiceMessage, isVapiListening, 
           </div>
         </div>
         <div className="input-footer">
-          <p>ContextLLM can make mistakes. Consider checking important information.</p>
+          <p>AdaptLM can make mistakes. Consider checking important information.</p>
           {isVoiceMode && (
             <p className="voice-mode-note">
               Voice mode is active. Click the microphone to start speaking.

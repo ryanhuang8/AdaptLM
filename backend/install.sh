@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# ContextLLM Backend Installation Script
-echo "🚀 Installing ContextLLM Backend Dependencies..."
+# AdaptLM Backend Installation Script
+echo "🚀 Installing AdaptLM Backend Dependencies..."
 
 # Check if Python is installed
 if ! command -v python3 &> /dev/null; then
@@ -16,9 +16,9 @@ if ! command -v pip3 &> /dev/null; then
 fi
 
 # Create virtual environment if it doesn't exist
-if [ ! -d "contextllm_env" ]; then
+if [ ! -d "adaptlm" ]; then
     echo "📦 Creating virtual environment..."
-    python3 -m venv contextllm_env
+    python3 -m venv adaptlm_env
     echo "✅ Virtual environment created"
 else
     echo "✅ Virtual environment already exists"
@@ -26,7 +26,7 @@ fi
 
 # Activate virtual environment
 echo "🔧 Activating virtual environment..."
-source contextllm_env/bin/activate
+source adaptlm_env/bin/activate
 
 # Upgrade pip
 echo "⬆️  Upgrading pip..."
@@ -51,7 +51,7 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "📋 Next steps:"
     echo "1. Create the .env file with your API keys"
-    echo "2. Activate the virtual environment: source contextllm_env/bin/activate"
+    echo "2. Activate the virtual environment: source adaptlm_env/bin/activate"
     echo "3. Run the server: python app.py"
     echo "4. Test the health endpoint: curl http://localhost:5000/health"
     echo ""
