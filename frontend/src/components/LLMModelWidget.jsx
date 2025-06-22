@@ -6,25 +6,25 @@ const LLMModelWidget = ({ currentLLM }) => {
     gpt: {
       name: 'GPT-4',
       provider: 'OpenAI',
-      logo: '🤖',
+      logo: '📘',
       color: '#10a37f'
     },
     gemini: {
       name: 'Gemini',
       provider: 'Google',
-      logo: '🔷',
+      logo: '🧠',
       color: '#4285f4'
     },
     claude: {
       name: 'Claude',
       provider: 'Anthropic',
-      logo: '🧠',
+      logo: '🤖',
       color: '#d97706'
     },
     groq: {
       name: 'Groq',
       provider: 'Groq',
-      logo: '🎭',
+      logo: '⚡',
       color: '#7c3aed'
     }
   }

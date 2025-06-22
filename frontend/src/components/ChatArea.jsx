@@ -16,13 +16,13 @@ const ChatArea = ({ messages, isLoading, currentLLM }) => {
   const getLLMInfo = (llm) => {
     switch (llm) {
       case 'gpt':
-        return { icon: '🤖', color: '#10a37f' }
+        return { icon: '📘', color: '#10a37f' }
       case 'gemini':
-        return { icon: '🔷', color: '#4285f4' }
+        return { icon: '🧠', color: '#4285f4' }
       case 'claude':
-        return { icon: '🧠', color: '#d97706' }
-      case 'hume':
-        return { icon: '🎭', color: '#7c3aed' }
+        return { icon: '🤖', color: '#d97706' }
+      case 'groq':
+        return { icon: '⚡', color: '#7c3aed' }
       default:
         return { icon: <Bot size={20} />, color: '#10a37f' }
     }
