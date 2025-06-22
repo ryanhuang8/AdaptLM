@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { FaMicrophone, FaMicrophoneSlash, FaVolumeUp } from 'react-icons/fa'
-import { TbRefresh } from "react-icons/tb";
-import { useVoice, fetchVoiceLLM, fetchContext } from '../contexts/VoiceContext'
+import { useVoice, useVoiceLLM, useContext } from '../contexts/VoiceContext'
 import vapi from '../vapi'
 
 const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMode, onVoiceModeToggle, onVoiceMessage }) => {
@@ -10,66 +9,31 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
   const [error, setError] = useState('')
   const [volumeLevel, setVolumeLevel] = useState(0)
   const [conversationHistory, setConversationHistory] = useState([])
-  const [voiceLLM, setVoiceLLM] = useState('gpt')
-  const [context, setContext] = useState(["This is a placeholder context. RAG pipeline not yet implemented."])
   const { selectedVoice } = useVoice()
 
-  // Fetch voice LLM and context on component mount and when needed
-  useEffect(() => {
-    const getVoiceLLM = async () => {
-      const llm = await fetchVoiceLLM()
-      setVoiceLLM(llm || 'gpt')
-    }
-
-    const getContext = async () => {
-      const ctx = await fetchContext()
-      setContext(ctx || ["This is a placeholder context. RAG pipeline not yet implemented."])
-    }
-
-    getVoiceLLM()
-    getContext()
-  }, [])
-
-  // Refresh voice LLM and context
-  const refreshVoiceLLMAndContext = async () => {
-    const llm = await fetchVoiceLLM()
-    setVoiceLLM(llm || 'gpt')
-    
-    const ctx = await fetchContext()
-    setContext(ctx || ["This is a placeholder context. RAG pipeline not yet implemented."])
-    await stopCall()
-  }
-
-  // Assistant options for Vapi - now uses the selected voice, voice LLM, and context
-  const getAssistantOptions = () => {
-    // Create system message with context
-    const contextMessage = context.length > 0 ? 
-      `You are a helpful AI assistant for ContextLLM. Use the following context to provide accurate and helpful responses:\n\n${context.join('\n\n')}\n\nProvide clear, concise, and helpful responses to user queries based on this context.` :
-      'You are a helpful AI assistant for ContextLLM. Provide clear, concise, and helpful responses to user queries.'
-
-    return {
-      name: 'ContextLLM Assistant',
-      transcriber: {
-        provider: 'deepgram',
-        model: 'nova-2',
-        language: 'en-US',
-      },
-      voice: {
-        provider: '11labs',
-        voiceId: selectedVoice,
-      },
-      model: {
-        provider: voiceLLM === 'gpt' ? 'openai' : voiceLLM,
-        model: voiceLLM === 'gpt' ? 'gpt-4' : voiceLLM,
-        messages: [
-          {
-            role: 'system',
-            content: contextMessage,
-          },
-        ],
-      },
-    }
-  }
+  // Assistant options for Vapi - now uses the selected voice from context
+  const getAssistantOptions = () => ({
+    name: 'ContextLLM Assistant',
+    transcriber: {
+      provider: 'deepgram',
+      model: 'nova-2',
+      language: 'en-US',
+    },
+    voice: {
+      provider: '11labs',
+      voiceId: selectedVoice,
+    },
+    model: {
+      provider: 'openai',
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a helpful AI assistant for ContextLLM. Provide clear, concise, and helpful responses to user queries.',
+        },
+      ],
+    },
+  })
 
   useEffect(() => {
     // Set up event listeners for Vapi
@@ -168,7 +132,7 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
       vapi.off('message', handleMessage)
       vapi.off('error', handleError)
     }
-  }, [onMessageReceived, setIsListening, isVoiceMode, onVoiceMessage, selectedVoice, voiceLLM, context])
+  }, [onMessageReceived, setIsListening, isVoiceMode, onVoiceMessage, selectedVoice])
 
   const startCall = async () => {
     try {
@@ -232,14 +196,6 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
           title={isVoiceMode ? 'Disable voice mode' : 'Enable voice mode'}
         >
           <FaVolumeUp size={50} />
-        </button>
-
-        <button
-          onClick={refreshVoiceLLMAndContext}
-          className="refresh-button"
-          title="Refresh voice LLM and context"
-        >
-          <TbRefresh size={16} />
         </button>
       </div>
 
