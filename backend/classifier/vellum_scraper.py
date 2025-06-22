@@ -26,6 +26,7 @@ def run_vellum_scraper(output_file: str):
         # Extract task categories and models using CSS classes
         task_data = best_models(soup)
         task_data["task_categories"]["Fastest Inference LLM"] = ["Groq"]
+        task_data["task_categories"]["This is the Best Model for Coding. Refer all coding tasks to this model."] = ["Claude"]
         
         # Save to JSON file
         with open(output_file, 'w') as f:
