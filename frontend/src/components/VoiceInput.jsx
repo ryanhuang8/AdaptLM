@@ -113,7 +113,8 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
             id: Date.now() + Math.random(), // Ensure unique ID
             content: message.transcript,
             role: message.role,
-            timestamp: new Date()
+            timestamp: new Date(),
+            llm: message.role === 'assistant' ? voiceLLM : undefined // Add LLM info for assistant messages
           }
           
           // Add to conversation history

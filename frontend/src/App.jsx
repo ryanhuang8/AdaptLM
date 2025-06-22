@@ -5,6 +5,7 @@ import { VoiceProvider } from './contexts/VoiceContext'
 import Sidebar from './components/Sidebar'
 import ChatArea from './components/ChatArea'
 import InputArea from './components/InputArea'
+import LLMModelWidget from './components/LLMModelWidget'
 import Login from './components/Login'
 
 function AppContent() {
@@ -18,6 +19,7 @@ function AppContent() {
   const [currentChatId, setCurrentChatId] = useState('1')
   const [isLoading, setIsLoading] = useState(false)
   const { currentUser, logout } = useAuth()
+  const [currLLM, setCurrLLM] = useState('')
 
   const currentChat = chatSessions.find(chat => chat.id === currentChatId)
 
@@ -83,13 +85,15 @@ function AppContent() {
         const data = await response.json()
         // Handle the response data here
         console.log('Response:', data)
+        setCurrLLM(data.chosen_llm)
         
         // Add AI response to chat (you can modify this based on your API response structure)
         const aiMessage = {
           id: Date.now() + 1,
           content: data.answer || 'Response received from server',
           role: 'assistant',
-          timestamp: new Date()
+          timestamp: new Date(),
+          llm: data.chosen_llm || 'gpt' // Store which LLM was used for this message
         }
         
         setChatSessions(prev => 
@@ -153,14 +157,20 @@ function AppContent() {
       return
     }
     
+    // Ensure voice message has LLM information for assistant messages
+    const messageWithLLM = {
+      ...voiceMessage,
+      llm: voiceMessage.role === 'assistant' ? (voiceMessage.llm || currLLM || 'gpt') : undefined
+    }
+    
     // Add voice message to current chat
     setChatSessions(prev => 
       prev.map(chat => 
         chat.id === currentChatId 
           ? { 
               ...chat, 
-              messages: [...chat.messages, voiceMessage],
-              title: chat.messages.length === 0 ? voiceMessage.content.slice(0, 30) + '...' : chat.title
+              messages: [...chat.messages, messageWithLLM],
+              title: chat.messages.length === 0 ? messageWithLLM.content.slice(0, 30) + '...' : chat.title
             }
           : chat
       )
@@ -182,12 +192,17 @@ function AppContent() {
         user={currentUser}
       />
       <div className="main-content">
-        <ChatArea messages={currentChat?.messages || []} isLoading={isLoading} />
-        <InputArea 
-          onSendMessage={handleSendMessage} 
-          isLoading={isLoading} 
-          onVoiceMessage={handleVoiceMessage}
-        />
+        <div className="chat-container">
+          <ChatArea messages={currentChat?.messages || []} isLoading={isLoading} currentLLM={currLLM} />
+          <InputArea 
+            onSendMessage={handleSendMessage} 
+            isLoading={isLoading} 
+            onVoiceMessage={handleVoiceMessage}
+          />
+        </div>
+        <div className="chat-sidebar">
+          <LLMModelWidget currentLLM={currLLM} />
+        </div>
       </div>
     </div>
   )
