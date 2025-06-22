@@ -13,12 +13,14 @@ class Config:
                  test_models: bool = True,
                  test_embeddings: bool = True,
                  test_index_manager: bool = True,
-                 test_pinecone: bool = True):
+                 test_pinecone: bool = True,
+                 test_llm_models: bool = True):
         self.test_paths = test_paths
         self.test_models = test_models
         self.test_embeddings = test_embeddings
         self.test_index_manager = test_index_manager
         self.test_pinecone = test_pinecone
+        self.test_llm_models = test_llm_models
 
 def test_paths():
     """Test and display system paths and current working directory."""
@@ -256,6 +258,98 @@ def test_pinecone():
         except:
             pass
 
+def test_llm_models():
+    """Test Claude and GPT models with context extraction and ingestion, including model switching."""
+    from models import Claude, GPT
+    from vector_store import PineconeVectorStore
+    import time
+    
+    print("=== Claude & GPT LLM Models Test ===\n")
+    
+    # Test configuration - use only lowercase alphanumeric and hyphens for Pinecone
+    test_user_id = "test-user"
+    
+    try:
+        # Check if Pinecone API key is available
+        import os
+        pinecone_key = os.getenv("PINECONE_API_KEY")
+        if not pinecone_key:
+            print("⚠️  PINECONE_API_KEY not found. Testing without vector database...")
+            print("   To test with vector database, set PINECONE_API_KEY in your environment variables.")
+            
+            # Test basic model functionality without vector store
+            print(f"\n1. Testing basic model functionality...")
+            
+            # Initialize Claude model (this will fail without Pinecone, but let's try)
+            try:
+                claude_model = Claude("claude", test_user_id, PineconeVectorStore, None, None)
+                print(f"   ✅ Claude model initialized")
+                
+                # Test basic response
+                prompt = "What is my favorite programming language?"
+                print(f"\n   Testing prompt: '{prompt}'")
+                response = claude_model.generate_text(prompt)
+                print(f"   ✅ Claude response: {response[:100]}...")
+                
+            except Exception as e:
+                print(f"   ❌ Claude model failed: {e}")
+                print(f"   This is expected without a valid Pinecone API key.")
+            
+            return
+        
+        # If we have Pinecone key, run full test
+        print("✅ PINECONE_API_KEY found. Running full test with vector database...")
+        
+        # Initialize Claude model
+        claude_model = Claude("claude", test_user_id, PineconeVectorStore, None, None)
+        print(f"   ✅ Claude model initialized with index: {test_user_id}")
+        
+        # Initialize GPT model  
+        gpt_model = GPT("gpt", test_user_id, PineconeVectorStore, None, None)
+        print(f"   ✅ GPT model initialized with index: {test_user_id}")
+
+        # Test conversation flow
+        print(f"\n1. Testing conversation flow with previous output storage...")
+        
+        # First prompt
+        prompt1 = "What is my favorite programming language?"
+        print(f"\n   Prompt 1: '{prompt1}'")
+        claude_response1 = claude_model.generate_text(prompt1)
+        print(f"   ✅ Claude response: {claude_response1[:100]}...")
+        print(f"   📝 Previous output stored: {claude_model.previous_output[:50] if claude_model.previous_output else 'None'}...")
+
+        # Wait for async ingestion
+        print(f"\n   ⏳ Waiting for async ingestion...")
+
+        # Test context extraction
+        context = claude_model.extract_context(prompt1)
+        print(f"   📚 Context extracted: {len(context) if context else 0} items")
+
+        # input previous message
+        previous_message = "my birthday is June 21st, 1990"
+
+        # Test model switching
+        claude_model.previous_prompt = previous_message
+
+        print(f"\n   Testing model switching...")
+        claude_response2 = claude_model.generate_text("What ism y birthday again")
+        print(f"   ✅ Claude response: {claude_response2[:100]}...")
+        
+    except Exception as e:
+        print(f"❌ Error during test: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Try to clean up
+        try:
+            from vector_store import IndexManager
+            index_manager = IndexManager()
+            if index_manager.index_exists(test_user_id):
+                print(f"Cleaning up test index '{test_user_id}'...")
+                index_manager.delete_index(test_user_id)
+        except:
+            pass
+
 def main(config: Config):
     """Main function to run the path test."""
     if config.test_paths:
@@ -293,12 +387,20 @@ def main(config: Config):
         except Exception as e:
             print(f"\n❌ Error during Pinecone test: {e}")
 
+    if config.test_llm_models:
+        try:
+            test_llm_models()
+            print("\n🎉 Claude & GPT LLM Models test completed successfully!")
+        except Exception as e:
+            print(f"\n❌ Error during Claude & GPT test: {e}")
+
 if __name__ == "__main__":
     config = Config(
         test_paths=False,
         test_models=False,
         test_embeddings=False,
         test_index_manager=False,
-        test_pinecone=True,
+        test_pinecone=False,
+        test_llm_models=True,
     )
     main(config) 

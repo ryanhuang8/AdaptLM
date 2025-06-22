@@ -3,7 +3,9 @@ from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 from services.llm_chosen import llm_response
+
 from classifier.model_classifier import ModelRouter
+from vector_store import PineconeVectorStore
 
 # Load environment variables
 load_dotenv()
@@ -11,8 +13,11 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# Initialize the model router globally
+# Initialize global variables
 model_router = None
+previous_prompt = ""
+previous_output = ""
+vector_store = None # TODO: replace with uid
 
 def initialize_model_router():
     """Initialize the model router asynchronously"""
@@ -26,6 +31,19 @@ def initialize_model_router():
         print(f"Error initializing model router: {e}")
         model_router = None
         return False
+
+def initialize_vector_store():
+    global previous_prompt
+    global previous_output
+    global vector_store
+
+    try:
+        vector_store = PineconeVectorStore(index_name=f"alerihglhiuaerg")
+        return True
+    except Exception as e:
+        vector_store = None
+        return False
+        
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -58,7 +76,7 @@ def process_query():
         if not user_prompt:
             return jsonify({"error": "No user prompt provided"}), 400
         
-        # Use the model router to classify the prompt and choose the appropriate LLM
+        # Use the model router to classify the prompt and choose the appropriate LLMAdd commentMore actions
         global model_router
         if model_router is None:
             chosen_llm = "gpt"
@@ -72,11 +90,7 @@ def process_query():
                 chosen_llm = "gpt"  # Fallback to GPT
         print(f"Chosen LLM: {chosen_llm}")
 
-        # TODO: Implement RAG pipeline
-        # 2. Retrieve context from vector database
-        context = f"This is a placeholder context. RAG pipeline not yet implemented. (uid: {uid})"
-        # 3. Generate response using RAG
-        response = llm_response(chosen_llm, user_prompt, context)
+        response = llm_response(chosen_llm, uid, vector_store, user_prompt, previous_prompt, previous_output)
         
         # Placeholder response
         response = {
@@ -100,6 +114,7 @@ if __name__ == '__main__':
     debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
     
     print(f"Starting Flask server on port {port}")
-    # Initialize model router on startup
+    # Initialize model router on startupAdd commentMore actions
     initialize_model_router()
+    initialize_vector_store()
     app.run(host='0.0.0.0', port=port, debug=debug) 

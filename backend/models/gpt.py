@@ -2,21 +2,19 @@ from .llm import BaseLLM
 
 from openai import OpenAI
 from prompts import get_prompt_for_model
+from vector_store import PineconeVectorStore
 
 class GPT(BaseLLM):
-    def __init__(self, model_name: str):
-        # NOTE: self.system_prompt is default
-        super().__init__(model_name, system_prompt=get_prompt_for_model(model_name))
-        
+    def __init__(self, model_name: str, user_id: str, vector_store: PineconeVectorStore, previous_prompt: str = None, previous_output: str = None):
+        super().__init__(model_name, 
+                         system_prompt=get_prompt_for_model(model_name), 
+                         user_id=user_id,
+                         vector_store=vector_store)
+
+        # Initialize OpenAI client        
         self.client = OpenAI(api_key=self.api_key)
-
-    def extract_context(self, prompt: str) -> str:
-        # For now, return empty string - you can implement vector search later
-        return ""
-
-    def ingest_context(self, context_id: str, context: str) -> str:
-        # For now, do nothing - you can implement context storage later
-        return ""
+        self.previous_prompt = previous_prompt
+        self.previous_output = previous_output
 
     def generate_text(self, prompt: str) -> str:
         """
@@ -28,20 +26,55 @@ class GPT(BaseLLM):
         Returns:
             The generated text response.
         """
+        if self.previous_prompt is None and self.previous_output is None:
+            print("this is the first time we are generating text")
+
         try:
+            # Store the original user prompt (before enhancement)
+            original_prompt = prompt
+            
+            # EXTRACT CONTEXT
+            # NOTE: identify the number of chunks to return
+            context = self.extract_context(prompt)
+
+            # context should include previous output and messages
+            if self.previous_prompt:
+                context = f"Previous prompt: {self.previous_prompt}\n\n{context}"
+            if self.previous_output:
+                context = f"Previous output: {self.previous_output}\n\n{context}"
+
+            if context:
+                prompt = f"Given the following context and previous message, answer the question: {context}\n\n{prompt}"
+
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 max_tokens=self.token_limit,
                 temperature=self.temperature,
                 messages=[
                     {
+                        "role": "system",
+                        "content": self.system_prompt
+                    },
+                    {
                         "role": "user",
                         "content": prompt
                     }
                 ]
             )
-            # NOTE: should probably view the repsonse object
-            return response.choices[0].message.content or ""
+
+            # Get the response text
+            response_text = response.choices[0].message.content
+            
+            # Store the current output as previous output for next query
+            self.previous_output = response_text
+            self.previous_prompt = original_prompt  # Store original prompt, not enhanced one
+
+            # Ingest the conversation pair (original prompt + response)
+            conversation_pair = f"User: {original_prompt}\nAssistant: {response_text}"
+            self.ingest_context(conversation_pair)
+            
+            return response_text
+        
         except Exception as e:
             return f"Error: {str(e)}"
     

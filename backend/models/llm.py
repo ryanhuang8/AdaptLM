@@ -1,84 +1,150 @@
-import os 
+import os
+import threading
 from abc import ABC, abstractmethod
+from typing import Optional
 from dotenv import load_dotenv
 
-# Load environment variables
+from vector_store import PineconeVectorStore
+
+# Load environment variables from .env
 load_dotenv()
 
 class BaseLLM(ABC):
     """
-    Base class for LLM implementations.
+    Abstract base class for LLM implementations with context-aware features.
     """
 
-    def __init__(self, model_name: str,
-                temperature: float = 0.5, 
-                token_limit: int = 1000,
-                system_prompt: str = ""):
+    # Model configuration mappings
+    MODEL_NAMES = {
+        "gpt": "gpt-4o",
+        "deepseek": "deepseek-chat", 
+        "gemini": "gemini-2.0-flash",
+        "hume": "hume-voice",
+        "claude": "claude-opus-4-20250514"
+    }
+
+    API_KEY_NAMES = {
+        "gpt": "OPENAI_API_KEY",
+        "deepseek": "DEEPSEEK_API_KEY",
+        "gemini": "GEMINI_API_KEY", 
+        "hume": "HUME_API_KEY",
+        "claude": "ANTHROPIC_API_KEY"
+    }
+
+    def __init__(
+            self, 
+            model_name: str,
+            temperature: float = 0.5, 
+            token_limit: int = 1000,
+            system_prompt: str = "",
+            user_id: Optional[str] = None,
+            vector_store: Optional[PineconeVectorStore] = None
+            ):
         """
         Initialize the LLM.
 
         Args:
-            model_name: The name of the model to use.
+            model_name: The name of the model to use (gpt, deepseek, gemini, hume, claude)
+            temperature: Temperature for text generation (0.0 to 1.0)
+            token_limit: Maximum tokens for responses
+            system_prompt: System prompt for the model
+            user_id: User identifier for vector store isolation
+            vector_store: Vector store instance for context management
+
+        Raises:
+            ValueError: If model_name is invalid, user_id is None, or vector_store is None
         """
 
-        if model_name not in ["gpt", "deepseek", "gemini", "hume", "claude"]:
-            raise ValueError(f"Model {model_name} not found, please only use gpt, deepseek, gemini, hume, or claude")
+        if model_name not in self.MODEL_NAMES:
+            raise ValueError(f"Model {model_name} not supported. Use: {', '.join(self.MODEL_NAMES.keys())}")
         
-        # get model name and api key
-        model_dict = {
-            "gpt": "gpt-4o",
-            "deepseek": "deepseek-chat",
-            "gemini": "gemini-2.0-flash",
-            "hume": "hume-voice",
-            "claude": "claude-opus-4-20250514"
-        }
-
-        model_api_key_dict = {
-            "gpt": "OPENAI_API_KEY",
-            "deepseek": "DEEPSEEK_API_KEY",
-            "gemini": "GEMINI_API_KEY",
-            "hume": "HUME_API_KEY",
-            "claude": "ANTHROPIC_API_KEY"
-        }
-
-        # initialize model name, api key name, and api key
-        self.model_name = model_dict[model_name]
-        self.model_api_key_name = model_api_key_dict[model_name]
+        # Initialize model configuration
+        self.model_name = self.MODEL_NAMES[model_name]
+        self.model_api_key_name = self.API_KEY_NAMES[model_name]
         self.api_key = self._get_api_key(self.model_api_key_name)
         
         if not self.api_key:
             raise ValueError(f"API key not found for {model_name}. Please set {self.model_api_key_name} environment variable.")
         
+        # Validate required parameters
+        if user_id is None:
+            raise ValueError("User ID is required for this model.")
+        self.user_id = user_id
+
+        if vector_store is None:
+            raise ValueError("Vector store is required for this model.")
+
+        # Store the vector store instance
+        self.vector_store = vector_store
+        
+        # Initialize generation parameters
         self.temperature = temperature
         self.token_limit = token_limit 
         self.system_prompt = system_prompt
-
-    @abstractmethod
+    
     def extract_context(self, prompt: str) -> str:
         """
-        Extract relevant context from the prompt through a vector database.
+        Extract relevant context from the vector store based on the prompt.
 
         Args:
-            prompt: The user's input prompt.
+            prompt: The user's input prompt to search for context
 
         Returns:
-            A string representing the ID of the relevant context chunks.
-            If no context is found, return an empty string.
+            A string containing relevant context chunks, or empty string if none found
         """
-        raise NotImplementedError("This method is not implemented for this model.")
+        try:
+            results = self.vector_store.query(prompt, top_k=3)
+            
+            if not results:
+                return ""
+            
+            # Extract text from metadata
+            context_parts = []
+            for result in results:
+                if 'metadata' in result and 'text' in result['metadata']:
+                    context_parts.append(result['metadata']['text'])
+            
+            return "\n".join(context_parts)
+            
+        except Exception as e:
+            print(f"Warning: Vector DB query failed: {e}")
+            return ""
 
-    @abstractmethod
-    def ingest_context(self, context_id: str, context: str) -> None:
+    def _ingest_context_async(self, context: str) -> None:
         """
-        Ingest context into the LLM or a backing store.
+        Ingest context into the vector store asynchronously.
+        
+        Args:
+            context: The context data to ingest
+        """
+        if not context or not isinstance(context, str):
+            return
+            
+        try:
+            def ingest_worker():
+                try:
+                    self.vector_store.upsert_texts([context])
+                    print(f"✅ Context ingested asynchronously: {context[:50]}...")
+                except Exception as e:
+                    print(f"❌ Error ingesting context asynchronously: {e}")
+            
+            # Start ingestion in background thread
+            thread = threading.Thread(target=ingest_worker, daemon=True)
+            thread.start()
+            
+        except Exception as e:
+            print(f"Error starting async context ingestion: {e}")
+
+    def ingest_context(self, context: str) -> None:
+        """
+        Ingest context into the vector store (non-blocking).
 
         Args:
-            context_id: The ID of the context.
-            context: The context data to ingest.
+            context: The context data to ingest
         """
-        raise NotImplementedError("This method is not implemented for this model.")
+        self._ingest_context_async(context)
 
-
+    
     @abstractmethod
     def generate_text(self, prompt: str) -> str:
         """
@@ -86,15 +152,20 @@ class BaseLLM(ABC):
 
         Args:
             prompt: The user's input prompt.
-            conversation_id: Optional conversation ID for tracking and context.
 
         Returns:
             The generated text response.
         """
-        raise NotImplementedError("This method is not implemented for this model.")
-
+        raise NotImplementedError("This method must be implemented by subclasses.")
+    
     def _get_api_key(self, api_key_name: str) -> str:
         """
-        Get the API key from the environment variables.
+        Get the API key from environment variables.
+
+        Args:
+            api_key_name: Name of the environment variable containing the API key.
+
+        Returns:
+            The API key value, or empty string if not found.
         """
         return os.getenv(api_key_name, "")

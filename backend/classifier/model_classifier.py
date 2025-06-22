@@ -5,12 +5,13 @@ import torch
 import os
 from .vellum_scraper import run_vellum_scraper
 import json
+from pathlib import Path
 
 class ModelRouter:
     def __init__(self):
         # Get the directory where this file is located and construct the path
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.classifier_path = os.path.join(current_dir, "data", "vellum_leaderboard_data.json")
+        current_dir = Path(os.path.dirname(os.path.abspath(__file__)))
+        self.classifier_path = os.path.join(current_dir.parent, "data", "vellum_leaderboard_data.json")
         if not os.path.exists(self.classifier_path):
             run_vellum_scraper(self.classifier_path)
         with open(self.classifier_path, "r") as f:
