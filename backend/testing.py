@@ -55,15 +55,14 @@ def test_paths():
     
 
 def test_models(model_name: str):
-    from models import GPT, Gemini, DeepSeek, Claude, Hume
+    from models import GPT, Gemini, Claude, GroqAI
     print("=== Model Test ===\n")
 
     model_options = {
         "gpt": GPT(model_name),
         "gemini": Gemini(model_name),
-        "deepseek": DeepSeek(model_name),
         "claude": Claude(model_name),
-        "hume": Hume(model_name)
+        "hume": GroqAI(model_name)
     }
 
     model = model_options[model_name]
