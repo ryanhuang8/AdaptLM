@@ -8,16 +8,17 @@ from email.mime.text import MIMEText
 import base64
 
 class GmailAPI:
+
+    SCOPES = [
+    'https://www.googleapis.com/auth/gmail.send',
+    'https://www.googleapis.com/auth/gmail.compose',
+    'https://www.googleapis.com/auth/gmail.modify'
+    ]
     def __init__(self):
         """
         Initializes the scope and sets up the environment to access the token and credentials
         """
         # Use more comprehensive scopes for Gmail API
-        self.SCOPES = [
-            'https://www.googleapis.com/auth/gmail.send',
-            'https://www.googleapis.com/auth/gmail.compose',
-            'https://www.googleapis.com/auth/gmail.modify'
-        ]
         self.creds = None
         self.service = None
 
@@ -81,12 +82,23 @@ class GmailAPI:
 
 class SendEmailTool:
     def __init__(self):
-        self.gmail_api = GmailAPI()
+        self.gmail_api = None  # Lazy initialization
 
+    def _ensure_authenticated(self):
+        """Ensure the Gmail API is authenticated before use"""
+        if self.gmail_api is None:
+            self.gmail_api = GmailAPI()
+            try:
+                self.gmail_api.authenticate()
+            except Exception as e:
+                print(f"Warning: Failed to initialize Gmail API: {str(e)}")
+                raise
     
     def execute(self, to: str, subject: str, body: str):
         """Execute the email sending"""
         try:
+            self._ensure_authenticated()
+            
             # Send the email
             message_id = self.gmail_api.send_email(
                 to=to,

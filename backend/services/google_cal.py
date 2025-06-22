@@ -92,15 +92,23 @@ class GoogleCalendarAPI:
 
 class ScheduleAppointmentTool:
     def __init__(self):
-        self.calendar_api = GoogleCalendarAPI()
-        try:
-            self.calendar_api.authenticate()
-        except Exception as e:
-            print(f"Warning: Failed to initialize Google Calendar API: {str(e)}")
+        self.calendar_api = None  # Lazy initialization
+    
+    def _ensure_authenticated(self):
+        """Ensure the calendar API is authenticated before use"""
+        if self.calendar_api is None:
+            self.calendar_api = GoogleCalendarAPI()
+            try:
+                self.calendar_api.authenticate()
+            except Exception as e:
+                print(f"Warning: Failed to initialize Google Calendar API: {str(e)}")
+                raise
     
     def execute(self, summary: str, description: str, start_time: str, end_time: str, timezone: str = "America/New_York"):
         """Execute the appointment scheduling"""
         try:
+            self._ensure_authenticated()
+            
             # Parse datetime strings to datetime objects
             start_dt = datetime.datetime.fromisoformat(start_time.replace('Z', '+00:00'))
             end_dt = datetime.datetime.fromisoformat(end_time.replace('Z', '+00:00'))
