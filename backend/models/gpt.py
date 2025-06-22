@@ -7,8 +7,6 @@ class GPT(BaseLLM):
     def __init__(self, model_name: str):
         # NOTE: self.system_prompt is default
         super().__init__(model_name, system_prompt=get_prompt_for_model(model_name))
-
-        print("DEBUGGING PURPOSES ONLY: GPT API KEY: ", self.api_key)
         
         self.client = OpenAI(api_key=self.api_key)
 

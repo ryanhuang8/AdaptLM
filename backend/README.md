@@ -37,7 +37,7 @@ backend/
    Create a `.env` file with:
    ```
    FLASK_DEBUG=False
-   PORT=5000
+   PORT=8080
    OPENAI_API_KEY=your_openai_api_key_here
    ANTHROPIC_API_KEY=your_anthropic_api_key_here
    ```
