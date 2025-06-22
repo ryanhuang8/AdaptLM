@@ -138,6 +138,34 @@ function AppContent() {
     setIsLoading(false)
   }
 
+  const handleVoiceMessage = (voiceMessage) => {
+    // Check if this message already exists to prevent duplicates
+    const currentMessages = chatSessions.find(chat => chat.id === currentChatId)?.messages || []
+    const isDuplicate = currentMessages.some(msg => 
+      msg.content === voiceMessage.content && 
+      msg.role === voiceMessage.role &&
+      Math.abs(msg.timestamp.getTime() - voiceMessage.timestamp.getTime()) < 1000 // Within 1 second
+    )
+    
+    if (isDuplicate) {
+      console.log('Duplicate message detected, skipping:', voiceMessage.content)
+      return
+    }
+    
+    // Add voice message to current chat
+    setChatSessions(prev => 
+      prev.map(chat => 
+        chat.id === currentChatId 
+          ? { 
+              ...chat, 
+              messages: [...chat.messages, voiceMessage],
+              title: chat.messages.length === 0 ? voiceMessage.content.slice(0, 30) + '...' : chat.title
+            }
+          : chat
+      )
+    )
+  }
+
   if (!currentUser) {
     return <Login />
   }
@@ -154,7 +182,11 @@ function AppContent() {
       />
       <div className="main-content">
         <ChatArea messages={currentChat?.messages || []} isLoading={isLoading} />
-        <InputArea onSendMessage={handleSendMessage} isLoading={isLoading} />
+        <InputArea 
+          onSendMessage={handleSendMessage} 
+          isLoading={isLoading} 
+          onVoiceMessage={handleVoiceMessage}
+        />
       </div>
     </div>
   )

@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { FaPaperPlane } from 'react-icons/fa'
+import VoiceInput from './VoiceInput'
 
-const InputArea = ({ onSendMessage, isLoading }) => {
+const InputArea = ({ onSendMessage, isLoading, onVoiceMessage }) => {
   const [message, setMessage] = useState('')
+  const [isListening, setIsListening] = useState(false)
+  const [isVoiceMode, setIsVoiceMode] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -19,6 +22,23 @@ const InputArea = ({ onSendMessage, isLoading }) => {
     }
   }
 
+  const handleVoiceMessage = (transcript) => {
+    if (transcript.trim() && !isLoading) {
+      onSendMessage(transcript.trim())
+    }
+  }
+
+  const handleVoiceModeToggle = () => {
+    setIsVoiceMode(!isVoiceMode)
+  }
+
+  const handleVoiceMessageFromVapi = (voiceMessage) => {
+    // Pass voice messages from Vapi to parent component
+    if (onVoiceMessage) {
+      onVoiceMessage(voiceMessage)
+    }
+  }
+
   return (
     <div className="input-area">
       <form onSubmit={handleSubmit} className="input-form">
@@ -27,22 +47,37 @@ const InputArea = ({ onSendMessage, isLoading }) => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Message ContextLLM..."
-            disabled={isLoading}
+            placeholder={isVoiceMode ? "Voice mode active - use microphone to speak" : "Message ContextLLM..."}
+            disabled={isLoading || isListening}
             rows={1}
-            className="message-input"
+            className={`message-input ${isVoiceMode ? 'voice-mode' : ''}`}
           />
-          <button
-            type="submit"
-            disabled={!message.trim() || isLoading}
-            className="send-button"
-            title="Send message"
-          >
-            <FaPaperPlane size={16} />
-          </button>
+          <div className="input-buttons">
+            <VoiceInput 
+              onMessageReceived={handleVoiceMessage}
+              isListening={isListening}
+              setIsListening={setIsListening}
+              isVoiceMode={isVoiceMode}
+              onVoiceModeToggle={handleVoiceModeToggle}
+              onVoiceMessage={handleVoiceMessageFromVapi}
+            />
+            <button
+              type="submit"
+              disabled={!message.trim() || isLoading || isListening}
+              className="send-button"
+              title="Send message"
+            >
+              <FaPaperPlane size={16} />
+            </button>
+          </div>
         </div>
         <div className="input-footer">
           <p>ContextLLM can make mistakes. Consider checking important information.</p>
+          {isVoiceMode && (
+            <p className="voice-mode-note">
+              Voice mode is active. Click the microphone to start speaking.
+            </p>
+          )}
         </div>
       </form>
     </div>
