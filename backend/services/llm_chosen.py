@@ -1,5 +1,5 @@
 import re
-from models import GPT, Gemini, Claude, Hume
+from models import GPT, Gemini, Claude, Hume, GroqAI
 from models.agent import Agent
 from vector_store import PineconeVectorStore
 
@@ -113,8 +113,8 @@ class LLMRouter:
                 llm = Gemini(llm_name, uid, vector_store, previous_prompt, previous_output)
             elif llm_name == "claude":
                 llm = Claude(llm_name, uid, vector_store, previous_prompt, previous_output)
-            # elif llm_name == "hume":
-            #     llm = Hume(llm_name, uid, vector_store, previous_prompt, previous_output)
+            elif llm_name == "groq":
+                llm = GroqAI(llm_name, uid, vector_store, previous_prompt, previous_output)
             else:
                 raise ValueError(f"Invalid LLM name: {llm_name}")
             

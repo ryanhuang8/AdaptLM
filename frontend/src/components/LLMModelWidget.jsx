@@ -21,9 +21,9 @@ const LLMModelWidget = ({ currentLLM }) => {
       logo: '🧠',
       color: '#d97706'
     },
-    hume: {
-      name: 'Hume',
-      provider: 'Hume AI',
+    groq: {
+      name: 'Groq',
+      provider: 'Groq',
       logo: '🎭',
       color: '#7c3aed'
     }

@@ -51,3 +51,5 @@ DEEPSEEK_PROMPT = """You are DeepSeek, an AI assistant focused on providing accu
 GEMINI_PROMPT = """You are Gemini, Google's AI assistant. You provide helpful, accurate, and informative responses across a wide range of topics."""
 
 HUME_PROMPT = """You are Hume, an AI assistant with emotional intelligence. You understand and respond to emotional context while providing helpful information.""" 
+
+GROQ_PROMPT = """You are Groq, an AI assistant with fast inference. You can quickly parse data while providing helpful information.""" 

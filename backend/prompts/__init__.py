@@ -13,7 +13,8 @@ from .default import (
     CLAUDE_PROMPT,
     DEEPSEEK_PROMPT,
     GEMINI_PROMPT,
-    HUME_PROMPT
+    HUME_PROMPT,
+    GROQ_PROMPT,
 )
 
 # Define what gets imported when someone does "from prompts import *"
@@ -26,7 +27,8 @@ __all__ = [
     'CLAUDE_PROMPT',
     'DEEPSEEK_PROMPT',
     'GEMINI_PROMPT',
-    'HUME_PROMPT'
+    'HUME_PROMPT',
+    'GROQ_PROMPT'
 ]
 
 # You can also add convenience functions here
@@ -35,7 +37,7 @@ def get_prompt_for_model(model_name: str) -> str:
     Get the default system prompt for a specific model.
     
     Args:
-        model_name: The name of the model (gpt, claude, deepseek, gemini, hume)
+        model_name: The name of the model (gpt, claude, deepseek, gemini, hume, groq)
     
     Returns:
         The appropriate system prompt for the model
@@ -45,7 +47,8 @@ def get_prompt_for_model(model_name: str) -> str:
         "claude": CLAUDE_PROMPT,
         "deepseek": DEEPSEEK_PROMPT,
         "gemini": GEMINI_PROMPT,
-        "hume": HUME_PROMPT
+        "hume": HUME_PROMPT,
+        'groq': GROQ_PROMPT
     }
     
     return prompt_map.get(model_name.lower(), SYSTEM_PROMPT)

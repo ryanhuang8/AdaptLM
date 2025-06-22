@@ -45,6 +45,7 @@ class ModelRouter:
             "gpt": ["gpt", "openai", "o3", "o4"],
             "claude": ["claude", "anthropic"],
             "hume": ["hume"],
+            "groq": ["groq"]
             # "llama": ["llama", "meta"],
         }
         
