@@ -1,4 +1,6 @@
 contextllm_env
 .env
 data/
+credentials.json
+token.pickle
 **/__pycache__/

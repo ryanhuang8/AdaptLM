@@ -14,13 +14,15 @@ class Config:
                  test_embeddings: bool = True,
                  test_index_manager: bool = True,
                  test_pinecone: bool = True,
-                 test_llm_models: bool = True):
+                 test_llm_models: bool = True,
+                 test_google_calendar: bool = True):
         self.test_paths = test_paths
         self.test_models = test_models
         self.test_embeddings = test_embeddings
         self.test_index_manager = test_index_manager
         self.test_pinecone = test_pinecone
         self.test_llm_models = test_llm_models
+        self.test_google_calendar = test_google_calendar
 
 def test_paths():
     """Test and display system paths and current working directory."""
@@ -350,6 +352,75 @@ def test_llm_models():
         except:
             pass
 
+def test_agent_simple(test_user_id: str):
+    """Simple test of Agent functionality without requiring credentials."""
+    from models.agent import Agent
+    from vector_store import PineconeVectorStore
+    
+    try:
+        # Initialize vector store (will work without Pinecone API key)
+        try:
+            vector_store = PineconeVectorStore(index_name=test_user_id)
+            print("   ✅ Vector store initialized")
+        except Exception as e:
+            print(f"   ⚠️  Vector store initialization failed: {e}")
+            print("   Continuing without vector store...")
+            vector_store = None
+        
+        # Initialize agent
+        agent = Agent(
+            model_name="gpt",
+            user_id=test_user_id,
+            vector_store=vector_store
+        )
+        print("   ✅ Agent initialized successfully")
+        
+        # Test reprompting functionality
+        print(f"\n   Testing reprompting functionality...")
+        
+        # First request - incomplete calendar request
+        print(f"   Testing incomplete calendar request...")
+        response1 = agent.generate_text("Schedule a meeting")
+        print(f"   ✅ Response: {response1}")
+        
+        # Follow-up with more details
+        print(f"   Testing follow-up with details...")
+        response2 = agent.generate_text("It's for a doctor appointment tomorrow at 2 PM")
+        print(f"   ✅ Response: {response2}")
+        
+        # Test regular conversation (non-calendar)
+        print(f"\n   Testing regular conversation...")
+        response3 = agent.generate_text("What's the weather like?")
+        print(f"   ✅ Response: {response3}")
+        
+        print(f"\n🎉 Simple Agent test completed!")
+        
+    except Exception as e:
+        print(f"   ❌ Error: {e}")
+
+def test_agent_without_vector_store(test_user_id: str):
+    """Test Agent functionality without vector store."""
+    from models.agent import Agent
+    
+    try:
+        # Initialize agent without vector store
+        agent = Agent(
+            model_name="gpt",
+            user_id=test_user_id,
+            vector_store=None
+        )
+        print(f"   ✅ Agent initialized successfully")
+        
+        # Test basic functionality
+        print(f"\n2. Testing basic agent functionality...")
+        response = agent.generate_text("Hello, how are you?")
+        print(f"   ✅ Response: {response}")
+        
+        print(f"\n🎉 Agent test without vector store completed!")
+        
+    except Exception as e:
+        print(f"   ❌ Error: {e}")
+
 def main(config: Config):
     """Main function to run the path test."""
     if config.test_paths:
@@ -394,6 +465,13 @@ def main(config: Config):
         except Exception as e:
             print(f"\n❌ Error during Claude & GPT test: {e}")
 
+    if config.test_google_calendar:
+        try:
+            test_google_calendar()
+            print("\n🎉 Google Calendar test completed successfully!")
+        except Exception as e:
+            print(f"\n❌ Error during Google Calendar test: {e}")
+
 if __name__ == "__main__":
     config = Config(
         test_paths=False,
@@ -401,6 +479,7 @@ if __name__ == "__main__":
         test_embeddings=False,
         test_index_manager=False,
         test_pinecone=False,
-        test_llm_models=True,
+        test_llm_models=False,
+        test_google_calendar=True,
     )
     main(config) 
