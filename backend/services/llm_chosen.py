@@ -1,5 +1,5 @@
 import re
-from models import GPT, Gemini, Claude, Hume, GroqAI
+from models import GPT, Gemini, Claude, GroqAI
 from models.agent import Agent
 from vector_store import PineconeVectorStore
 

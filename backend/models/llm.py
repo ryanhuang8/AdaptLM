@@ -18,7 +18,6 @@ class BaseLLM(ABC):
     MODEL_NAMES = {
         "gpt": "gpt-4o",
         "gemini": "gemini-2.0-flash",
-        "hume": "hume-voice",
         "groq": "meta-llama/llama-4-scout-17b-16e-instruct",
         "claude": "claude-opus-4-20250514"
     }
@@ -26,7 +25,6 @@ class BaseLLM(ABC):
     API_KEY_NAMES = {
         "gpt": "OPENAI_API_KEY",
         "gemini": "GEMINI_API_KEY", 
-        "hume": "HUME_API_KEY",
         "groq": "GROQ_API_KEY",
         "claude": "ANTHROPIC_API_KEY"
     }
@@ -44,7 +42,7 @@ class BaseLLM(ABC):
         Initialize the LLM.
 
         Args:
-            model_name: The name of the model to use (gpt, gemini, hume, groq, claude)
+            model_name: The name of the model to use (gpt, gemini, groq, claude)
             temperature: Temperature for text generation (0.0 to 1.0)
             token_limit: Maximum tokens for responses
             system_prompt: System prompt for the model

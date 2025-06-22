@@ -44,8 +44,7 @@ class ModelRouter:
             "gemini": ["gemini", "google"],
             "gpt": ["gpt", "openai", "o3", "o4"],
             "claude": ["claude", "anthropic"],
-            "hume": ["hume"],
-            "groq": ["groq"]
+            "groq": ["groq", "llama"]
             # "llama": ["llama", "meta"],
         }
         

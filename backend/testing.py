@@ -62,7 +62,7 @@ def test_models(model_name: str):
         "gpt": GPT(model_name),
         "gemini": Gemini(model_name),
         "claude": Claude(model_name),
-        "hume": GroqAI(model_name)
+        "groq": GroqAI(model_name)
     }
 
     model = model_options[model_name]
