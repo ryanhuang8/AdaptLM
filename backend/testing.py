@@ -13,12 +13,14 @@ class Config:
                  test_models: bool = True,
                  test_embeddings: bool = True,
                  test_index_manager: bool = True,
-                 test_pinecone: bool = True):
+                 test_pinecone: bool = True,
+                 test_llm_models: bool = True):
         self.test_paths = test_paths
         self.test_models = test_models
         self.test_embeddings = test_embeddings
         self.test_index_manager = test_index_manager
         self.test_pinecone = test_pinecone
+        self.test_llm_models = test_llm_models
 
 def test_paths():
     """Test and display system paths and current working directory."""
@@ -256,6 +258,151 @@ def test_pinecone():
         except:
             pass
 
+def test_llm_models():
+    """Test Claude and GPT models with context extraction and ingestion, including model switching."""
+    from models import Claude, GPT
+    from vector_store import PineconeVectorStore
+    import time
+    
+    print("=== Claude & GPT LLM Models Test ===\n")
+    
+    # Test configuration - use only lowercase alphanumeric and hyphens for Pinecone
+    test_user_id = "test-user"
+    
+    try:
+        # Test prompt
+        test_prompt = "What is my favorite programming language?"
+        
+        print(f"1. Testing Claude model with immediate response...")
+        
+        # Initialize Claude model
+        claude_model = Claude("claude", test_user_id, PineconeVectorStore)
+        print(f"   ✅ Claude model initialized with index: {test_user_id}")
+        
+        # Test with prompt
+        print(f"\n   Testing prompt: '{test_prompt}'")
+        print(f"   ⚡ Generating response (should be immediate)...")
+        
+        start_time = time.time()
+        # Generate response
+        response = claude_model.generate_text(test_prompt)
+        response_time = time.time() - start_time
+        
+        # Handle None or empty responses
+        if response is None:
+            print(f"   ❌ Claude returned None response")
+        elif isinstance(response, str) and response.startswith("Error:"):
+            print(f"   ❌ Claude error: {response}")
+        else:
+            print(f"   ✅ Claude response ({response_time:.2f}s): {response[:100]}...")
+            
+            # Test context extraction
+            context = claude_model.extract_context(test_prompt)
+            if context:
+                print(f"   📚 Context extracted: {len(context)} items")
+            else:
+                print(f"   📚 No context found for this prompt")
+        
+        print(f"   🎉 Claude model test completed")
+        
+        # Wait a moment for async ingestion to complete
+        print(f"\n   ⏳ Waiting for async ingestion to complete...")
+        
+        # Test context persistence
+        print(f"\n2. Testing context persistence...")
+        
+        # Store some personal test context through Claude model
+        test_context = "My favorite programming language is Python because it's simple and readable."
+        
+        print("   Storing personal test context through Claude model...")
+        claude_model.vector_store.upsert_texts([test_context])
+
+        
+        # Test context retrieval with Claude
+        print("   Testing context retrieval with Claude...")
+        claude_query_results = claude_model.vector_store.query("my programming language", top_k=3)
+        print(f"   Claude found {len(claude_query_results)} relevant contexts")
+        
+        for i, result in enumerate(claude_query_results):
+            print(f"   {i+1}. Score: {result['score']:.4f}, Text: {result['metadata']['text'][:50]}...")
+        
+        # Test GPT model with same context
+        print(f"\n3. Testing GPT model with shared context...")
+        
+        try:
+            # Initialize GPT model with same user ID (same index)
+            gpt_model = GPT("gpt", test_user_id, PineconeVectorStore)
+            print(f"   ✅ GPT model initialized with same index: {test_user_id}")
+            
+            # Test context retrieval with GPT
+            print("   Testing context retrieval with GPT...")
+            gpt_query_results = gpt_model.vector_store.query("my personal information", top_k=3)
+            print(f"   GPT found {len(gpt_query_results)} relevant contexts")
+            
+            for i, result in enumerate(gpt_query_results):
+                print(f"   {i+1}. Score: {result['score']:.4f}, Text: {result['metadata']['text'][:50]}...")
+            
+            # Test GPT response with context
+            print("   Testing GPT response with context...")
+            gpt_response = gpt_model.generate_text("What do you know about me?")
+            print(f"   ✅ GPT response: {gpt_response[:150]}...")
+            
+            print(f"   🎉 GPT model test completed")
+            
+        except Exception as e:
+            print(f"   ❌ Error with GPT: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        # Test model switching with context
+        print(f"\n4. Testing model switching with context...")
+        
+        # Test Claude with context (should include GPT's responses)
+        print("   Testing Claude with updated context...")
+        claude_context_response = claude_model.generate_text("What's my favorite programming language?")
+        print(f"   ✅ Claude with context: {claude_context_response[:150]}...")
+        
+        # Test GPT with context (should include Claude's responses)
+        print("   Testing GPT with updated context...")
+        gpt_context_response = gpt_model.generate_text("What's my favorite programming language?")
+        print(f"   ✅ GPT with context: {gpt_context_response[:150]}...")
+        
+        # Test vector store stats
+        print(f"\n5. Testing vector store statistics...")
+        stats = claude_model.vector_store.get_stats()
+        print(f"   Total vectors: {stats['total_vector_count']}")
+        print(f"   Index dimension: {stats['dimension']}")
+        print(f"   Index fullness: {stats['index_fullness']}")
+        
+        # Verify both models see the same stats
+        gpt_stats = gpt_model.vector_store.get_stats()
+        print(f"   GPT sees same total vectors: {gpt_stats['total_vector_count']}")
+        
+        # Clean up
+        print(f"\n6. Cleaning up test index '{test_user_id}'...")
+        from vector_store import IndexManager
+        index_manager = IndexManager()
+        if index_manager.index_exists(test_user_id):
+            deleted = index_manager.delete_index(test_user_id)
+            print(f"   ✅ Test index deleted: {deleted}")
+        
+        print("\n🎉 Claude & GPT LLM Models test completed!\n")
+        
+    except Exception as e:
+        print(f"❌ Error during Claude & GPT test: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Try to clean up
+        try:
+            from vector_store import IndexManager
+            index_manager = IndexManager()
+            if index_manager.index_exists(test_user_id):
+                print(f"Cleaning up test index '{test_user_id}'...")
+                index_manager.delete_index(test_user_id)
+        except:
+            pass
+
 def main(config: Config):
     """Main function to run the path test."""
     if config.test_paths:
@@ -293,12 +440,20 @@ def main(config: Config):
         except Exception as e:
             print(f"\n❌ Error during Pinecone test: {e}")
 
+    if config.test_llm_models:
+        try:
+            test_llm_models()
+            print("\n🎉 Claude & GPT LLM Models test completed successfully!")
+        except Exception as e:
+            print(f"\n❌ Error during Claude & GPT test: {e}")
+
 if __name__ == "__main__":
     config = Config(
         test_paths=False,
         test_models=False,
         test_embeddings=False,
         test_index_manager=False,
-        test_pinecone=True,
+        test_pinecone=False,
+        test_llm_models=True,
     )
     main(config) 

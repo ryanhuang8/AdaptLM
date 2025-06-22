@@ -1,25 +1,22 @@
 from .llm import BaseLLM
 
 import google.generativeai as genai
+from prompts import get_prompt_for_model
+from vector_store.vector_store import PineconeVectorStore
 
 class Gemini(BaseLLM):
-    def __init__(self, model_name: str, temperature: float = 0.5, token_limit: int = 1000, system_prompt: str = ""):
-        super().__init__(model_name, temperature, token_limit, system_prompt)
+    def __init__(self, model_name: str, user_id: str, vector_store: PineconeVectorStore):
+        super().__init__(model_name, 
+                         system_prompt=get_prompt_for_model(model_name), 
+                         user_id=user_id,
+                         vector_store=vector_store
+                         )
+        print("DEBUGGING PURPOSES ONLY: GEMINI API KEY: ", self.api_key)
         
-        # Configure the API
+        # Configure Gemini
         genai.configure(api_key=self.api_key)
-        
-        # Get the model
         self.model = genai.GenerativeModel(self.model_name)
 
-    def extract_context(self, prompt: str) -> str:
-        # For now, return empty string - you can implement vector search later
-        return ""
-
-    def ingest_context(self, context_id: str, context: str) -> None:
-        # For now, do nothing - you can implement context storage later
-        return ""
-    
     def generate_text(self, prompt: str) -> str:
         """
         Generate text using the Gemini model.
@@ -31,18 +28,26 @@ class Gemini(BaseLLM):
             The generated text response.
         """
         try:
-            # Create generation config
-            generation_config = genai.types.GenerationConfig(
-                temperature=self.temperature,
-                max_output_tokens=self.token_limit,
-            )
+            # EXTRACT CONTEXT
+            # NOTE: identify the number of chunks to return
+            context = self.extract_context(prompt)
+            if context:
+                prompt = f"Given the following context, answer the question: {context}\n\n{prompt}"
+
+            # Combine system prompt with user prompt
+            full_prompt = f"{self.system_prompt}\n\n{prompt}"
             
-            # Generate content
             response = self.model.generate_content(
-                prompt,
-                generation_config=generation_config
+                full_prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=self.temperature,
+                    max_output_tokens=self.token_limit
+                )
             )
-            
+
+            # INGEST CONTEXT
+            self.ingest_context(context)
+
             return response.text
             
         except Exception as e:

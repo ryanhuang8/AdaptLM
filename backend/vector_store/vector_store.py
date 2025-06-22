@@ -53,8 +53,6 @@ class PineconeVectorStore:
 
         # Use the embedding model's actual dimension if not specified
         self.dimension = self.embedding_manager.dimension
-
-
             
         print(f"Using dimension: {self.dimension} (from model: {model_name})")
         
