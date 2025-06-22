@@ -1,13 +1,13 @@
 import { useState } from 'react'
 
-const ServicesWidget = () => {
+const ServicesWidget = ({ isAgentMode }) => {
   const services = [
     {
       id: 'agent',
       name: 'Agent',
       description: 'Intelligent conversation agent',
       icon: '⚙️',
-      status: 'active'
+      status: isAgentMode ? 'active' : 'inactive'
     }
   ]
 
