@@ -179,16 +179,23 @@ def process_query():
         if llm_router is not None:
             response = llm_router.llm_response(chosen_llm, uid, vector_store, user_prompt, previous_prompt, previous_output)
             conversation_state = llm_router.get_conversation_state()
+            
+            # Determine the actual LLM being used
+            if conversation_state.get('is_in_agent_mode', False):
+                actual_llm = "gpt"  # Agent is handling the request
+            else:
+                actual_llm = chosen_llm  # Original LLM is being used
         else:
             # Fallback to legacy function
             from services.llm_chosen import llm_response
             response = llm_response(chosen_llm, uid, vector_store, user_prompt, previous_prompt, previous_output)
             conversation_state = {"is_in_agent_mode": False, "original_llm": chosen_llm}
+            actual_llm = chosen_llm
         
         # Placeholder response
         response = {
             "answer": response,
-            "chosen_llm": chosen_llm,
+            "chosen_llm": actual_llm,
             "context_used": [],
             "confidence_score": 0.0,
             "processing_time": 0.0,

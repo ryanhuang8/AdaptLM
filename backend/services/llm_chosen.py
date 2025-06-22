@@ -13,6 +13,11 @@ class LLMRouter:
             '2 pm', '3 pm', '4 pm', '5 pm', 'morning', 'afternoon', 'evening'
         ]
         
+        # Keywords that trigger email routing
+        self.email_keywords = [
+            'email', 'send email', 'mail'
+        ]
+        
         # Initialize agent
         self.agent = Agent()
         
@@ -48,16 +53,32 @@ class LLMRouter:
         
         return False
     
+    def detect_email_intent(self, prompt: str) -> bool:
+        """Detect if the user wants to send an email"""
+        prompt_lower = prompt.lower()
+        
+        # Check for email-related keywords
+        for keyword in self.email_keywords:
+            if keyword in prompt_lower:
+                return True
+        
+        return False
+    
     def should_exit_agent_mode(self, agent_response: str) -> bool:
         """Determine if we should exit agent mode and return to original LLM"""
         # Check if appointment was successfully scheduled
         if "successfully" in agent_response.lower() and "scheduled" in agent_response.lower():
             return True
         
+        # Check if email was successfully sent
+        if "successfully" in agent_response.lower() and "sent" in agent_response.lower() and "email" in agent_response.lower():
+            return True
+        
         # Check if agent is asking for more information (stay in agent mode)
         if any(phrase in agent_response.lower() for phrase in [
             "need more information", "please provide", "what time", "what date",
-            "could you clarify", "i need", "missing information"
+            "could you clarify", "i need", "missing information", "who should i send",
+            "what should the subject be", "what should i write"
         ]):
             return False
         
@@ -77,8 +98,8 @@ class LLMRouter:
         
         # Check if we should enter agent mode
         if not self.conversation_state['is_in_agent_mode']:
-            if self.detect_appointment_intent(prompt):
-                print(f"🔀 Detected appointment intent, switching to agent mode")
+            if self.detect_appointment_intent(prompt) or self.detect_email_intent(prompt):
+                print(f"🔀 Detected appointment or email intent, switching to agent mode")
                 self.conversation_state['is_in_agent_mode'] = True
                 self.conversation_state['agent_conversation_count'] = 0
         
@@ -98,7 +119,19 @@ class LLMRouter:
                 
                 # Clear agent conversation after successful scheduling
                 if "successfully" in agent_response.lower() and "scheduled" in agent_response.lower():
+                    # Convert appointment details to text format for vector store
+                    appointment_text = self._format_appointment_for_vector_store()
+                    if appointment_text:
+                        vector_store.upsert_texts([appointment_text])
                     self.agent.clear_after_scheduling()
+                
+                # Clear agent conversation after successful email sending
+                elif "successfully" in agent_response.lower() and "sent" in agent_response.lower() and "email" in agent_response.lower():
+                    # Convert email details to text format for vector store
+                    email_text = self._format_email_for_vector_store()
+                    if email_text:
+                        vector_store.upsert_texts([email_text])
+                    self.agent.clear_after_emailing()
             
             return agent_response
         
@@ -133,6 +166,49 @@ class LLMRouter:
             'last_user_message': None
         }
         self.agent.reset_conversation()
+    
+    def _format_appointment_for_vector_store(self) -> str:
+        """Format appointment details as text for vector store storage"""
+        details = self.agent.current_appointment_details
+        if not details or not details.get('summary'):
+            return ""
+        
+        # Format appointment details as a readable text
+        appointment_text = f"Appointment: {details.get('summary', 'No title')}"
+        
+        if details.get('description'):
+            appointment_text += f"\nDescription: {details.get('description')}"
+        
+        if details.get('date'):
+            appointment_text += f"\nDate: {details.get('date')}"
+        
+        if details.get('start_time'):
+            appointment_text += f"\nStart Time: {details.get('start_time')}"
+        
+        if details.get('end_time'):
+            appointment_text += f"\nEnd Time: {details.get('end_time')}"
+        
+        if details.get('timezone'):
+            appointment_text += f"\nTimezone: {details.get('timezone')}"
+        
+        return appointment_text
+
+    def _format_email_for_vector_store(self) -> str:
+        """Format email details as text for vector store storage"""
+        details = self.agent.current_email_details
+        if not details or not details.get('to'):
+            return ""
+        
+        # Format email details as a readable text
+        email_text = f"Email sent to: {details.get('to', 'Unknown recipient')}"
+        
+        if details.get('subject'):
+            email_text += f"\nSubject: {details.get('subject')}"
+        
+        if details.get('body'):
+            email_text += f"\nBody: {details.get('body')}"
+        
+        return email_text
 
 # Backward compatibility function
 def llm_response(llm_name: str, uid: str, vector_store: PineconeVectorStore, prompt: str, previous_prompt: str, previous_output: str):

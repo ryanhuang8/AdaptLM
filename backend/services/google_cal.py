@@ -19,7 +19,7 @@ class GoogleCalendarAPI:
         self.service = None
 
 
-    def authenticate(self, credentials_path='credentials.json', token_path='token.pickle'):
+    def authenticate(self, credentials_path='credentials.json', token_path='calendar_token.pickle'):
         """authenticate users with google calendar api using OAuth 2.0"""
         if os.path.exists(token_path):
             with open(token_path, 'rb') as token:
@@ -28,17 +28,31 @@ class GoogleCalendarAPI:
         # after extracting the tokens.pickle, is it valid
         if not self.creds or not self.creds.valid:
             if self.creds and self.creds.expired and self.creds.refresh_token:
+                print("Refreshing expired calendar credentials...")
                 self.creds.refresh(Request())
             else:
+                # Check if credentials.json exists
+                if not os.path.exists(credentials_path):
+                    raise FileNotFoundError(
+                        "credentials.json not found. Please download it from Google Cloud Console:\n"
+                        "1. Go to https://console.cloud.google.com/\n"
+                        "2. Navigate to APIs & Services > Credentials\n"
+                        "3. Download the OAuth 2.0 Client ID credentials\n"
+                        "4. Save as 'credentials.json' in the backend directory"
+                    )
+                
+                print(f"Starting Calendar OAuth flow with scopes: {self.SCOPES}")
                 # need to access the credentials 
                 flow = InstalledAppFlow.from_client_secrets_file(credentials_path, self.SCOPES)
                 # access this scope with the credential and see if its valid
-                self.creds = flow.run_local_server(port=0)
+                self.creds = flow.run_local_server(port=8080)
+                print("Calendar OAuth authentication completed successfully!")
             # serializes the object self.creds into the token which is the path
             with open(token_path, 'wb') as token:
                 pickle.dump(self.creds, token)
         # service is available
         self.service = build('calendar', 'v3', credentials=self.creds)
+        print(f"Calendar service initialized with scopes: {self.creds.scopes}")
 
     def create_event(self, summary: str = "Doctor Appointment",
                      description: str = "Appointment Description",

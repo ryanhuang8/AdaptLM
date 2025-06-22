@@ -15,7 +15,9 @@ class Config:
                  test_index_manager: bool = True,
                  test_pinecone: bool = True,
                  test_llm_models: bool = True,
-                 test_simple_agent: bool = True):
+                 test_simple_agent: bool = True,
+                 test_emailing: bool = True,
+                 test_google_cal: bool = True):
         self.test_paths = test_paths
         self.test_models = test_models
         self.test_embeddings = test_embeddings
@@ -23,6 +25,8 @@ class Config:
         self.test_pinecone = test_pinecone
         self.test_llm_models = test_llm_models
         self.test_simple_agent = test_simple_agent
+        self.test_emailing = test_emailing
+        self.test_google_cal = test_google_cal
 
 def test_paths():
     """Test and display system paths and current working directory."""
@@ -358,6 +362,18 @@ def test_agent_simple():
     print(response)
     print(agent.current_appointment_details)
 
+def test_google_cal():
+    from services.google_cal import GoogleCalendarAPI
+    google_cal = GoogleCalendarAPI()
+    google_cal.authenticate()
+    response = google_cal.create_event(summary="Test Event", description="Test Description", start_time="2025-06-23T15:00:00", end_time="2025-06-23T16:00:00")
+    print(response)
+
+def test_emailing():
+    from services.emailing import authenticate_gmail, send_email
+    creds = authenticate_gmail()
+    send_email(creds, "john_zou@brown.edu", "Test Email", "This is a test email")
+
 def main(config: Config):
     """Main function to run the path test."""
     if config.test_paths:
@@ -409,6 +425,20 @@ def main(config: Config):
         except Exception as e:
             print(f"\n❌ Error during Simple Agent test: {e}")
 
+    if config.test_emailing:
+        try:
+            test_emailing()
+            print("\n🎉 Emailing test completed successfully!")
+        except Exception as e:
+            print(f"\n❌ Error during Emailing test: {e}")
+
+    if config.test_google_cal:
+        try:
+            test_google_cal()
+            print("\n🎉 Google Calendar test completed successfully!")
+        except Exception as e:
+            print(f"\n❌ Error during Google Calendar test: {e}")
+
 if __name__ == "__main__":
     config = Config(
         test_paths=False,
@@ -417,6 +447,8 @@ if __name__ == "__main__":
         test_index_manager=False,
         test_pinecone=False,
         test_llm_models=False,
-        test_simple_agent=True,
+        test_simple_agent=False,
+        test_emailing=False,
+        test_google_cal=True
     )
     main(config) 

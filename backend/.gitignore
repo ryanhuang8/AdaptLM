@@ -2,5 +2,9 @@ contextllm_env
 .env
 data/
 credentials.json
+
 token.pickle
+calendar_token.pickle
+gmail_token.pickle
+
 **/__pycache__/

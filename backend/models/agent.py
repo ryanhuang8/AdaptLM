@@ -5,14 +5,17 @@ import os
 import sys
 
 from services.google_cal import ScheduleAppointmentTool
+from services.emailing import SendEmailTool
 
-# Updated Agent class to use the tool properly
+# Updated Agent class to use both scheduling and emailing tools
 class Agent:
     SYSTEM_PROMPT = """
     Today's date is 6/22/2025.
-    You are a scheduling agent. Your goal is to schedule appointments for users.
-    You may ask for clarification if the user hasn't provided enough information.
+    You are a helpful assistant that can schedule appointments and send emails.
     
+    You can help with two main tasks however you can only EXECUTE ONE AT A TIME:
+    
+    1. SCHEDULING APPOINTMENTS:
     Required information for scheduling:
     - Date (year, month, day)
     - Start time (hour, minute)
@@ -20,11 +23,18 @@ class Agent:
     - Summary/title of the appointment
     - Description (optional)
     
-    Use the schedule_appointment function when you have all required information.
+    2. SENDING EMAILS:
+    Required information for sending emails:
+    - Recipient email address
+    - Subject line
+    - Email body content
+    
+    Use the schedule_appointment function when you have all required appointment information.
+    Use the send_email function when you have all required email information.
     
     IMPORTANT: Remember the conversation context and use information from previous messages
-    to fill out appointment details. If the user provides information in multiple messages,
-    combine them to create a complete appointment.
+    to fill out details. If the user provides information in multiple messages,
+    combine them to create complete information.
     """
     
     def __init__(self):
@@ -33,6 +43,7 @@ class Agent:
         print(os.getenv("OPENAI_API_KEY"))
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.schedule_tool = ScheduleAppointmentTool()
+        self.email_tool = SendEmailTool()
         
         # Store conversation context
         self.conversation_history = []
@@ -43,6 +54,11 @@ class Agent:
             'start_time': None,
             'end_time': None,
             'timezone': 'America/New_York'
+        }
+        self.current_email_details = {
+            'to': None,
+            'subject': None,
+            'body': None
         }
         
     def add_to_conversation(self, role: str, content: str):
@@ -68,6 +84,12 @@ class Agent:
             if value is not None:
                 context += f"- {key}: {value}\n"
         
+        # Add current email details
+        context += "\nCurrent email details:\n"
+        for key, value in self.current_email_details.items():
+            if value is not None:
+                context += f"- {key}: {value}\n"
+        
         return context
         
     def generate_text(self, prompt: str) -> str:
@@ -80,7 +102,7 @@ class Agent:
         # Create enhanced prompt with context
         enhanced_prompt = f"{context}\n\nCurrent user message: {prompt}"
         
-        tools = [self.schedule_tool.to_openai_tool()]
+        tools = [self.schedule_tool.to_openai_tool(), self.email_tool.to_openai_tool()]
         
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
@@ -113,8 +135,19 @@ class Agent:
                     result = self.schedule_tool.execute(**args)
                     tool_results.append(result)
                     
-                    # Don't clear immediately - let the user see what was scheduled
-                    # Only clear after a delay or when starting a new conversation
+                elif tool_call.function.name == "send_email":
+                    # Parse the function arguments
+                    args = json.loads(tool_call.function.arguments)
+                    
+                    # Store the email details before clearing
+                    self.current_email_details.update({
+                        'to': args.get('to'),
+                        'subject': args.get('subject'),
+                        'body': args.get('body')
+                    })
+                    
+                    result = self.email_tool.execute(**args)
+                    tool_results.append(result)
             
             if tool_results:
                 response_text = "\n".join(tool_results)
@@ -122,7 +155,7 @@ class Agent:
                 return response_text
         
         # Add assistant response to conversation history
-        response_text = message.content or "I need more information to schedule your appointment."
+        response_text = message.content or "I need more information to help you."
         self.add_to_conversation('assistant', response_text)
         return response_text
     
@@ -145,6 +178,11 @@ class Agent:
             'end_time': None,
             'timezone': 'America/New_York'
         }
+        self.current_email_details = {
+            'to': None,
+            'subject': None,
+            'body': None
+        }
     
     def clear_after_scheduling(self):
         """Clear conversation history and appointment details after successful scheduling"""
@@ -157,7 +195,33 @@ class Agent:
             'end_time': None,
             'timezone': 'America/New_York'
         }
+        self.current_email_details = {
+            'to': None,
+            'subject': None,
+            'body': None
+        }
+    
+    def clear_after_emailing(self):
+        """Clear conversation history and email details after successful email sending"""
+        self.conversation_history = []
+        self.current_appointment_details = {
+            'summary': None,
+            'description': None,
+            'date': None,
+            'start_time': None,
+            'end_time': None,
+            'timezone': 'America/New_York'
+        }
+        self.current_email_details = {
+            'to': None,
+            'subject': None,
+            'body': None
+        }
     
     def get_scheduled_appointment_details(self) -> dict:
         """Get the details of the last scheduled appointment"""
         return self.current_appointment_details.copy()
+    
+    def get_sent_email_details(self) -> dict:
+        """Get the details of the last sent email"""
+        return self.current_email_details.copy()
