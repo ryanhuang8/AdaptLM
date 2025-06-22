@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { VoiceProvider } from './contexts/VoiceContext'
 import Sidebar from './components/Sidebar'
 import ChatArea from './components/ChatArea'
 import InputArea from './components/InputArea'
@@ -195,7 +196,9 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <VoiceProvider>
+        <AppContent />
+      </VoiceProvider>
     </AuthProvider>
   )
 }

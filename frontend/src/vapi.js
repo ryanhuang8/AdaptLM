@@ -1,6 +1,6 @@
 import Vapi from '@vapi-ai/web'
 
-// Initialize Vapi with your API key
-const vapi = new Vapi('7c3fdca0-b290-48e5-a14a-3247706ff4bc')
+// Initialize Vapi with your API key from environment variable
+const vapi = new Vapi(import.meta.env.VITE_VAPI_API_KEY)
 
 export default vapi
