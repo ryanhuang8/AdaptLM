@@ -8,7 +8,6 @@ from hume.empathic_voice.chat.socket_client import ChatConnectOptions
 
 class Hume(BaseLLM):
     def __init__(self, model_name: str):
-        # NOTE: self.system_prompt is default
         super().__init__(model_name, system_prompt=get_prompt_for_model(model_name))
         self.secret_key = os.getenv("HUME_SECRET_KEY", "")
         self.config_id = os.getenv("HUME_CONFIG_ID", "")
@@ -50,15 +49,16 @@ class Hume(BaseLLM):
                 nonlocal response_text
                 text = response["message"]["text"]
                 response_text = text
-                print(f"AI: {text}")
+            
+            full_prompt = f"{self.system_prompt}\n{prompt}"
             
             async with self.client.empathic_voice.chat.connect_with_callbacks(
                 options=ChatConnectOptions(config_id=self.config_id),
                 on_response=handle_response
             ) as socket:
-                await socket.send_text(prompt)
+                await socket.send_text(full_prompt)
                 # Wait a bit for response to be processed
-                await asyncio.sleep(2)
+                await asyncio.sleep(1)
             
             return response_text if response_text else "No response received from Hume"
             
