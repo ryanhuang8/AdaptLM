@@ -19,7 +19,7 @@ const ServicesWidget = ({ isAgentMode }) => {
       
       <div className="services-list">
         {services.map((service) => (
-          <div key={service.id} className="service-item">
+          <div key={service.id} className={`service-item ${service.status === 'active' ? 'active' : ''}`}>
             <div className="service-icon">
               {service.icon}
             </div>
