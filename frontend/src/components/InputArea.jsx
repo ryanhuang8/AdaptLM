@@ -2,9 +2,8 @@ import { useState } from 'react'
 import { FaPaperPlane } from 'react-icons/fa'
 import VoiceInput from './VoiceInput'
 
-const InputArea = ({ onSendMessage, isLoading, onVoiceMessage }) => {
+const InputArea = ({ onSendMessage, isLoading, onVoiceMessage, isVapiListening, setIsVapiListening }) => {
   const [message, setMessage] = useState('')
-  const [isListening, setIsListening] = useState(false)
   const [isVoiceMode, setIsVoiceMode] = useState(false)
 
   const handleSubmit = (e) => {
@@ -48,22 +47,22 @@ const InputArea = ({ onSendMessage, isLoading, onVoiceMessage }) => {
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={isVoiceMode ? "Voice mode active - use microphone to speak" : "Message ContextLLM..."}
-            disabled={isLoading || isListening}
+            disabled={isLoading || isVapiListening}
             rows={1}
             className={`message-input ${isVoiceMode ? 'voice-mode' : ''}`}
           />
           <div className="input-buttons">
             <VoiceInput 
               onMessageReceived={handleVoiceMessage}
-              isListening={isListening}
-              setIsListening={setIsListening}
+              isListening={isVapiListening}
+              setIsListening={setIsVapiListening}
               isVoiceMode={isVoiceMode}
               onVoiceModeToggle={handleVoiceModeToggle}
               onVoiceMessage={handleVoiceMessageFromVapi}
             />
             <button
               type="submit"
-              disabled={!message.trim() || isLoading || isListening}
+              disabled={!message.trim() || isLoading || isVapiListening}
               className="send-button"
               title="Send message"
             >

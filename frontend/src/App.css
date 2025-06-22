@@ -1298,3 +1298,39 @@ body {
 .service-status.warning .status-dot {
   background-color: #d97706;
 }
+
+.voice-widget {
+  background-color: #343541;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #4a4b53;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.voice-widget-header {
+  margin-bottom: 12px;
+}
+
+.voice-widget-header h3 {
+  color: #ececf1;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.voice-widget-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voice-provider-logo {
+  font-weight: bold;
+  font-size: 18px;
+  color: #c175ff;
+  padding: 8px 16px;
+  background-color: rgba(193, 117, 255, 0.1);
+  border: 1px solid rgba(193, 117, 255, 0.2);
+  border-radius: 8px;
+  display: inline-block;
+}

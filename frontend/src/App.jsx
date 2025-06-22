@@ -7,6 +7,7 @@ import ChatArea from './components/ChatArea'
 import InputArea from './components/InputArea'
 import LLMModelWidget from './components/LLMModelWidget'
 import ServicesWidget from './components/ServicesWidget'
+import VoiceWidget from './components/VoiceWidget'
 import Login from './components/Login'
 
 function AppContent() {
@@ -22,6 +23,7 @@ function AppContent() {
   const { currentUser, logout } = useAuth()
   const [currLLM, setCurrLLM] = useState('')
   const [isAgentMode, setIsAgentMode] = useState(false)
+  const [isVapiListening, setIsVapiListening] = useState(false)
 
   const currentChat = chatSessions.find(chat => chat.id === currentChatId)
 
@@ -205,11 +207,14 @@ function AppContent() {
             onSendMessage={handleSendMessage} 
             isLoading={isLoading} 
             onVoiceMessage={handleVoiceMessage}
+            isVapiListening={isVapiListening}
+            setIsVapiListening={setIsVapiListening}
           />
         </div>
         <div className="chat-sidebar">
           <LLMModelWidget currentLLM={currLLM} />
           <ServicesWidget isAgentMode={isAgentMode} />
+          <VoiceWidget isVapiActive={isVapiListening} />
         </div>
       </div>
     </div>

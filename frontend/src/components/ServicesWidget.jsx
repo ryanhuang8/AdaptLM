@@ -1,13 +1,13 @@
 import { useState } from 'react'
 
-const ServicesWidget = ({ isAgentMode }) => {
+const ServicesWidget = () => {
   const services = [
     {
       id: 'agent',
       name: 'Agent',
       description: 'Intelligent conversation agent',
       icon: '⚙️',
-      status: isAgentMode ? 'active' : 'inactive'
+      status: 'active'
     }
   ]
 
@@ -19,7 +19,7 @@ const ServicesWidget = ({ isAgentMode }) => {
       
       <div className="services-list">
         {services.map((service) => (
-          <div key={service.id} className={`service-item ${isAgentMode ? 'active' : ''}`}>
+          <div key={service.id} className="service-item">
             <div className="service-icon">
               {service.icon}
             </div>

@@ -69,13 +69,29 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
   // Assistant options for Vapi - now uses the selected voice, voice LLM, and context
   const getAssistantOptions = () => {
     // Create system message with context
-    const contextMessage = context.length > 0 ? 
-      `You are a helpful AI assistant for ContextLLM. Use the following context to provide accurate and helpful responses:\n\n${context}\n\nProvide clear, concise, and helpful responses to user queries based on this context.` :
+    const contextMessage = Array.isArray(context) && context.length > 0 ? 
+      `You are a helpful AI assistant for ContextLLM. Use the following context to provide accurate and helpful responses:\n\n${context.join('\n\n')}\n\nProvide clear, concise, and helpful responses to user queries based on this context.` :
       'You are a helpful AI assistant for ContextLLM. Provide clear, concise, and helpful responses to user queries.'
 
     console.log('Context:', context)
+    console.log('Voice LLM:', voiceLLM)
 
     // TODO: add if/else statements for different LLMs
+    let model;
+    let provider;
+    if (voiceLLM === 'gpt') {
+      provider = 'openai'
+      model = 'gpt-4'
+    } else if (voiceLLM === 'claude') {
+      provider = 'anthropic'
+      model = 'claude-3-opus-20240229'
+    } else if (voiceLLM === 'gemini') {
+      provider = 'google'
+      model = 'gemini-2.5-pro-preview-05-06'
+    } else {
+      provider = 'openai'
+      model = 'gpt-4'
+    }
 
     return {
       name: 'ContextLLM Assistant',
@@ -89,8 +105,8 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
         voiceId: selectedVoice,
       },
       model: {
-        provider: voiceLLM === 'gpt' ? 'openai' : voiceLLM,
-        model: voiceLLM === 'gpt' ? 'gpt-4' : voiceLLM,
+        provider: provider,
+        model: model,
         messages: [
           {
             role: 'system',
@@ -322,4 +338,4 @@ const VoiceInput = ({ onMessageReceived, isListening, setIsListening, isVoiceMod
   )
 }
 
-export default VoiceInput 
+export default VoiceInput

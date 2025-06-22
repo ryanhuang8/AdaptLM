@@ -21,7 +21,7 @@ const ChatArea = ({ messages, isLoading, currentLLM }) => {
         return { icon: '🔷', color: '#4285f4' }
       case 'claude':
         return { icon: '🧠', color: '#d97706' }
-      case 'groq':
+      case 'hume':
         return { icon: '🎭', color: '#7c3aed' }
       default:
         return { icon: <Bot size={20} />, color: '#10a37f' }
