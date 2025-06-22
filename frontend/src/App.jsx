@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar'
 import ChatArea from './components/ChatArea'
 import InputArea from './components/InputArea'
 import LLMModelWidget from './components/LLMModelWidget'
+import ServicesWidget from './components/ServicesWidget'
 import Login from './components/Login'
 
 function AppContent() {
@@ -20,6 +21,7 @@ function AppContent() {
   const [isLoading, setIsLoading] = useState(false)
   const { currentUser, logout } = useAuth()
   const [currLLM, setCurrLLM] = useState('')
+  const [isAgentMode, setIsAgentMode] = useState(false)
 
   const currentChat = chatSessions.find(chat => chat.id === currentChatId)
 
@@ -88,6 +90,9 @@ function AppContent() {
         // Handle the response data here
         console.log('Response:', data)
         setCurrLLM(data.chosen_llm)
+
+        console.log('Conversation state:', data.conversation_state.is_in_agent_mode)
+        setIsAgentMode(data.conversation_state.is_in_agent_mode)
         
         // Add AI response to chat (you can modify this based on your API response structure)
         const aiMessage = {
@@ -204,6 +209,7 @@ function AppContent() {
         </div>
         <div className="chat-sidebar">
           <LLMModelWidget currentLLM={currLLM} />
+          <ServicesWidget isAgentMode={isAgentMode} />
         </div>
       </div>
     </div>

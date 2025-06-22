@@ -1180,3 +1180,121 @@ body {
   align-items: center;
   justify-content: center;
 }
+
+.services-widget {
+  background-color: #343541;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #4a4b53;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.services-widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.services-widget-header h3 {
+  color: #ececf1;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.expand-button {
+  background: none;
+  border: none;
+  color: #8e8ea0;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.expand-button:hover {
+  background-color: #2a2b32;
+  color: #ececf1;
+}
+
+.service-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #4a4b53;
+  transition: all 0.2s ease;
+}
+
+.service-item:last-child {
+  border-bottom: none;
+}
+
+.service-item.active {
+  background-color: #2a2b32;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 0 -12px;
+  border: 1px solid #4a4b53;
+}
+
+.service-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: #2a2b32;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.service-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.service-name {
+  font-weight: 600;
+  color: #ececf1;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.service-description {
+  font-size: 11px;
+  color: #8e8ea0;
+  line-height: 1.3;
+}
+
+.service-status {
+  display: flex;
+  align-items: center;
+}
+
+.service-status .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10a37f;
+  animation: pulse 2s infinite;
+}
+
+.service-status.inactive .status-dot {
+  background-color: #8e8ea0;
+  animation: none;
+}
+
+.service-status.warning .status-dot {
+  background-color: #d97706;
+}
