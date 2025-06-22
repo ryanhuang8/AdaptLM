@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 from dotenv import load_dotenv
 
-from vector_store.vector_store import PineconeVectorStore
+from vector_store import PineconeVectorStore
 
 # Load environment variables from .env
 load_dotenv()
@@ -74,8 +74,8 @@ class BaseLLM(ABC):
         if vector_store is None:
             raise ValueError("Vector store is required for this model.")
 
-        # Initialize vector store with user-specific index
-        self.vector_store = vector_store(index_name=user_id)
+        # Store the vector store instance
+        self.vector_store = vector_store
         
         # Initialize generation parameters
         self.temperature = temperature

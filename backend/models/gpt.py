@@ -5,7 +5,7 @@ from prompts import get_prompt_for_model
 from vector_store import PineconeVectorStore
 
 class GPT(BaseLLM):
-    def __init__(self, model_name: str, user_id: str, vector_store: PineconeVectorStore, previous_prompt: str, previous_output: str):
+    def __init__(self, model_name: str, user_id: str, vector_store: PineconeVectorStore, previous_prompt: str = None, previous_output: str = None):
         super().__init__(model_name, 
                          system_prompt=get_prompt_for_model(model_name), 
                          user_id=user_id,

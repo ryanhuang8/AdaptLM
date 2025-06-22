@@ -2,10 +2,10 @@ from .llm import BaseLLM
 
 import google.generativeai as genai
 from prompts import get_prompt_for_model
-from vector_store.vector_store import PineconeVectorStore
+from vector_store import PineconeVectorStore
 
 class Gemini(BaseLLM):
-    def __init__(self, model_name: str, user_id: str, vector_store: PineconeVectorStore):
+    def __init__(self, model_name: str, user_id: str, vector_store: PineconeVectorStore, previous_prompt: str = None, previous_output: str = None):
         super().__init__(model_name, 
                          system_prompt=get_prompt_for_model(model_name), 
                          user_id=user_id,
@@ -14,6 +14,8 @@ class Gemini(BaseLLM):
         # Configure Gemini
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel(self.model_name)
+        self.previous_prompt = previous_prompt
+        self.previous_output = previous_output
 
     def generate_text(self, prompt: str) -> str:
         """
