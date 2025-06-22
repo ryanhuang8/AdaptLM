@@ -1,0 +1,70 @@
+{
+  "last_updated": "2025-06-21 16:48:01",
+  "task_categories": {
+    "Best in Reasoning (GPQA Diamond)": [
+      "Gemini 2.5 Pro",
+      "Grok 3 [Beta]",
+      "OpenAI o3",
+      "OpenAI o4-mini",
+      "OpenAI o3-mini"
+    ],
+    "Best in High School Math (AIME 2025)": [
+      "OpenAI o4-mini",
+      "Grok 3 [Beta]",
+      "Gemini 2.5 Pro",
+      "OpenAI o3",
+      "OpenAI o3-mini"
+    ],
+    "Best in Agentic Coding (SWE Bench)": [
+      "Claude 4 Sonnet",
+      "Claude 4 Opus",
+      "Claude 3.7 Sonnet [R]",
+      "OpenAI o3",
+      "OpenAI o4-mini"
+    ],
+    "Best in Tool Use (BFCL)": [
+      "Llama 3.1 405b",
+      "Llama 3.3 70b",
+      "GPT-4o",
+      "GPT-4.5",
+      "Nova Pro"
+    ],
+    "Best in Adaptive Reasoning (GRIND)": [
+      "Gemini 2.5 Pro",
+      "Claude 4 Sonnet",
+      "Claude 4 Opus",
+      "Claude 3.7 Sonnet [R]",
+      "Nemotron Ultra 253B"
+    ],
+    "Best Overall (Humanity's Last Exam)": [
+      "Gemini 2.5 Pro",
+      "OpenAI o3",
+      "OpenAI o4-mini",
+      "OpenAI o3-mini",
+      "Gemini 2.5 Flash"
+    ],
+    "Fastest Models": [
+      "Llama 4 Scout",
+      "Llama 3.3 70b",
+      "Llama 3.1 70b",
+      "Llama 3.1 8b",
+      "Llama 3.1 405b"
+    ],
+    "Lowest Latency (TTFT)": [
+      "GPT-4o mini",
+      "Gemini 2.0 Flash",
+      "Llama 4 Scout",
+      "Llama 3.1 8b",
+      "Nova Micro"
+    ],
+    "Cheapest Models": [
+      "Gemini 2.0 Flash",
+      "Gemini 1.5 Flash",
+      "Gemma 3 27b",
+      "Nova Micro"
+    ],
+    "Best in Empathy and Emotional Intelligence": [
+      "Hume"
+    ]
+  }
+}
