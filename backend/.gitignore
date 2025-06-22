@@ -1,4 +1,4 @@
-adaptlm
+adaptlm_env
 .env
 data/
 credentials.json

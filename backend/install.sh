@@ -16,7 +16,7 @@ if ! command -v pip3 &> /dev/null; then
 fi
 
 # Create virtual environment if it doesn't exist
-if [ ! -d "adaptlm" ]; then
+if [ ! -d "adaptlm_env" ]; then
     echo "📦 Creating virtual environment..."
     python3 -m venv adaptlm_env
     echo "✅ Virtual environment created"
@@ -53,7 +53,7 @@ if [ $? -eq 0 ]; then
     echo "1. Create the .env file with your API keys"
     echo "2. Activate the virtual environment: source adaptlm_env/bin/activate"
     echo "3. Run the server: python app.py"
-    echo "4. Test the health endpoint: curl http://localhost:5000/health"
+    echo "4. Test the health endpoint: curl http://localhost:8080/health"
     echo ""
 else
     echo "❌ Installation failed. Please check the error messages above."
