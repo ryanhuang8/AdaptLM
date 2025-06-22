@@ -80,9 +80,22 @@ def get_llm():
 @app.route('/api/get_context', methods=['GET'])
 def get_context():
     """Get the context for the user"""
-    return jsonify({
-        "context": ["This is a placeholder context. RAG pipeline not yet implemented."]
-    })
+    global vector_store
+    if vector_store is None:
+        return jsonify({
+            "context": ["This is a placeholder context."]
+        })
+    else:
+        user_prompt = "Help me answer general questions"
+        results = vector_store.query(user_prompt, top_k=3)
+
+        context_parts = []
+        for result in results:
+            if 'metadata' in result and 'text' in result['metadata']:
+                context_parts.append(result['metadata']['text'])
+        return jsonify({
+            "context": "\n".join(context_parts)
+        })
 
 @app.route('/api/initialize', methods=['POST'])
 def initialize_router():
